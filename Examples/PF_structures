@@ -1,0 +1,431 @@
+{1, x2^(-1), (1 + x2)/((1 - x2 + nb*x2)^2*(2 - x2 + nb*x2)), 
+ 1/(x2*(1 - x2 + nb*x2)^2*(2 - x2 + nb*x2)), 1/(x2*(-1 + na - x2 + nb*x2)), 
+ 1/((-1 + x2)^2*x2*(-rr13 + x2)^2*(-rr14 + x2)^2*(1 - x2 + nb*x2)^3*
+   (2 - x2 + nb*x2)*(1 + nb - x2 + nb*x2)^3), 
+ 1/((-1 + x2)*x2*(-rr13 + x2)*(-rr14 + x2)*(1 - x2 + nb*x2)^2*
+   (2 - x2 + nb*x2)*(1 + nb - x2 + nb*x2)^3), 
+ 1/((-1 + x2)*x2*(-rr13 + x2)*(-rr14 + x2)*(1 - x2 + nb*x2)^2*
+   (2 - x2 + nb*x2)*(1 + nb - x2 + nb*x2)^2), 
+ 1/((-1 + x2)^2*x2*(-rr13 + x2)^2*(-rr14 + x2)^2*(1 - x2 + nb*x2)^3*
+   (2 - x2 + nb*x2)*(1 + nb - x2 + nb*x2)), 
+ 1/((1 - x2 + nb*x2)*(2 - x2 + nb*x2)*(1 + na - x2 + nb*x2)*
+   (-1 + na - na*x2 + na*nb*x2)), 1/(x2*(1 - x2 + nb*x2)*(2 - x2 + nb*x2)*
+   (1 + na - x2 + nb*x2)*(-1 + na - na*x2 + na*nb*x2)), 
+ 1/((-2 + x2)*x2*(-rr15 + x2)*(-rr16 + x2)*(2 - x2 + nb*x2)^2*
+   (4 - x2 + nb*x2)*(2 + 2*nb - x2 + nb*x2)*(2*na + 2*nb - na*x2 + na*nb*x2)^
+    2), 1/((-2 + x2)^2*x2*(-rr15 + x2)^2*(-rr16 + x2)^2*(2 - x2 + nb*x2)^3*
+   (4 - x2 + nb*x2)*(2 + 2*nb - x2 + nb*x2)^2*(2*na + 2*nb - na*x2 + 
+    na*nb*x2)), 1/((-4 + x2)*x2*(-rr17 + x2)*(-rr18 + x2)*
+   (-8*nb - x2 + nb*x2)*(-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)^2*
+   (-2*nb - 6*na*nb - na*x2 + na*nb*x2)^2), 
+ 1/((-4 + x2)*x2^2*(-rr17 + x2)^2*(-rr18 + x2)^2*(-8*nb - x2 + nb*x2)^2*
+   (-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)^3*
+   (-2*nb - 6*na*nb - na*x2 + na*nb*x2)), 
+ 1/((-4 + x2)*x2*(-rr17 + x2)^2*(-rr18 + x2)^2*(-8*nb - x2 + nb*x2)^2*
+   (-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)^3*
+   (-2*nb - 6*na*nb - na*x2 + na*nb*x2)), 
+ 1/((-4 + x2)*x2*(-rr17 + x2)*(-rr18 + x2)*(-8*nb - x2 + nb*x2)*
+   (-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)^2*
+   (-4*nb - 4*na*nb - na*x2 + na*nb*x2)^2), 
+ 1/((-4 + x2)*x2^2*(-rr17 + x2)^2*(-rr18 + x2)^2*(-8*nb - x2 + nb*x2)^2*
+   (-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)^3*
+   (-4*nb - 4*na*nb - na*x2 + na*nb*x2)), 
+ 1/((-4 + x2)*x2*(-rr17 + x2)^2*(-rr18 + x2)^2*(-8*nb - x2 + nb*x2)^2*
+   (-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)^3*
+   (-4*nb - 4*na*nb - na*x2 + na*nb*x2)), 
+ 1/((-1 + x2)*x2*(-rr13 + x2)*(-rr14 + x2)*(1 - x2 + nb*x2)^2*
+   (2 - x2 + nb*x2)*(2*na + nb + na*nb - 2*na*x2 + 2*na*nb*x2)^2), 
+ 1/((-1 + x2)*x2*(-rr13 + x2)*(-rr14 + x2)*(1 - x2 + nb*x2)^2*
+   (2 - x2 + nb*x2)*(1 + nb - x2 + nb*x2)*
+   (2*na + nb + na*nb - 2*na*x2 + 2*na*nb*x2)^2), 
+ 1/((-1 + x2)^2*x2*(-rr13 + x2)^2*(-rr14 + x2)^2*(1 - x2 + nb*x2)^3*
+   (2 - x2 + nb*x2)*(2*na + nb + na*nb - 2*na*x2 + 2*na*nb*x2)), 
+ 1/((-1 + x2)^2*x2*(-rr13 + x2)^2*(-rr14 + x2)^2*(1 - x2 + nb*x2)^3*
+   (2 - x2 + nb*x2)*(1 + nb - x2 + nb*x2)^2*(2*na + nb + na*nb - 2*na*x2 + 
+    2*na*nb*x2)), 1/((-2 + x2)*x2*(-rr15 + x2)*(-rr16 + x2)*
+   (2 - x2 + nb*x2)^2*(4 - x2 + nb*x2)*(2 + 2*nb - x2 + nb*x2)*
+   (2*na + 2*nb - na*x2 - nb*x2 + 2*na*nb*x2)^2), 
+ 1/((-2 + x2)^2*x2*(-rr15 + x2)^2*(-rr16 + x2)^2*(2 - x2 + nb*x2)^3*
+   (4 - x2 + nb*x2)*(2 + 2*nb - x2 + nb*x2)^2*(2*na + 2*nb - na*x2 - nb*x2 + 
+    2*na*nb*x2)), -(1/(x2*(-rr11 + x2)^2*(-rr12 + x2)^2*
+    (-1 + na + x2 + na*x2)^2*(1 - na - x2 + nb*x2)^3*(1 + nb - x2 + nb*x2)^2*
+    (-nb + na*nb - na*x2 + na*nb*x2)*(-2*nb + 2*na*nb - na*x2 + nb*x2 + 
+      na*nb*x2 - nb^2*x2)^2)), 
+ -(1/(x2*(-rr11 + x2)^2*(-rr12 + x2)^2*(-1 + na + x2 + na*x2)^2*
+    (1 - na - x2 + nb*x2)^3*(1 + nb - x2 + nb*x2)^2*
+    (-nb + na*nb - na*x2 + na*nb*x2)*(2*na + nb + na*nb - na*x2 + na*nb*x2)*
+    (-2*nb + 2*na*nb - na*x2 + nb*x2 + na*nb*x2 - nb^2*x2)^2)), 
+ 1/(x2*(-rr11 + x2)*(-rr12 + x2)*(-1 + na + x2 + na*x2)*
+   (1 - na - x2 + nb*x2)^2*(1 + nb - x2 + nb*x2)*
+   (-nb + na*nb - na*x2 + na*nb*x2)*(-2*nb + 2*na*nb - na*x2 + nb*x2 + 
+    na*nb*x2 - nb^2*x2)), 1/(x2*(-rr11 + x2)*(-rr12 + x2)*
+   (-1 + na + x2 + na*x2)*(1 - na - x2 + nb*x2)^2*(1 + nb - x2 + nb*x2)*
+   (-nb + na*nb - na*x2 + na*nb*x2)*(2*na + nb + na*nb - na*x2 + na*nb*x2)^2*
+   (-2*nb + 2*na*nb - na*x2 + nb*x2 + na*nb*x2 - nb^2*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8)/
+  ((-4 + x2)*(-rr17 + x2)*(-rr18 + x2)*(-8*nb - x2 + nb*x2)*
+   (-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)^2*
+   (-2*nb - 6*na*nb - na*x2 + na*nb*x2)^2), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8)/
+  ((-2 + x2)*(-rr15 + x2)*(-rr16 + x2)*(2 - x2 + nb*x2)^2*(4 - x2 + nb*x2)*
+   (2 + 2*nb - x2 + nb*x2)*(2*na + 2*nb - na*x2 - nb*x2 + 2*na*nb*x2)^2), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7)/
+  ((-1 + x2)*(-rr13 + x2)*(-rr14 + x2)*(1 - x2 + nb*x2)^2*(2 - x2 + nb*x2)*
+   (1 + nb - x2 + nb*x2)^2), (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + 
+   x2^7 + x2^8)/((-2 + x2)*(-rr15 + x2)*(-rr16 + x2)*(2 - x2 + nb*x2)^2*
+   (4 - x2 + nb*x2)*(2 + 2*nb - x2 + nb*x2)*(2*na + 2*nb - na*x2 + na*nb*x2)^
+    2), (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8)/
+  ((-4 + x2)*(-rr17 + x2)*(-rr18 + x2)*(-8*nb - x2 + nb*x2)*
+   (-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)^2*
+   (-4*nb - 4*na*nb - na*x2 + na*nb*x2)^2), 
+ (x2 + x2^2 + x2^3)/((rr11 - x2)*(-rr12 + x2)*(-1 + na + x2 + na*x2)*
+   (1 - na - x2 + nb*x2)^2*(1 + nb - x2 + nb*x2)*
+   (-nb + na*nb - na*x2 + na*nb*x2)^3*(-2*nb + 2*na*nb - na*x2 + nb*x2 + 
+    na*nb*x2 - nb^2*x2)), (1 + x2 + x2^2)/((2 + x2)*(2 + 2*nb - x2 + nb*x2)^2*
+   (6 + 2*nb - x2 + nb*x2)), (1 + x2 + x2^2)/
+  ((-4 + x2)*(-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)^2), 
+ (1 + x2 + x2^2)/((2 - x2 + nb*x2)^2*(4 - x2 + nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9)/
+  ((-2 + x2)*(2 + x2)*(-rr19 + x2)*(-rr20 + x2)*(2 + 2*nb - x2 + nb*x2)^2*
+   (6 + 2*nb - x2 + nb*x2)*(2 + 6*nb - x2 + nb*x2)*
+   (2*na + 2*nb + 4*na*nb - na*x2 + na*nb*x2)^2), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9)/
+  ((-2 + x2)*(2 + x2)*(-rr19 + x2)*(-rr20 + x2)*(2 + 2*nb - x2 + nb*x2)^2*
+   (6 + 2*nb - x2 + nb*x2)*(2 + 6*nb - x2 + nb*x2)*
+   (2*na + 4*nb + 2*na*nb - na*x2 + na*nb*x2)^2), 
+ (1 + x2 + x2^2 + x2^3)/((-1 + x2)*(-rr13 + x2)*(-rr14 + x2)*
+   (1 - x2 + nb*x2)^2*(2 - x2 + nb*x2)*(1 + nb - x2 + nb*x2)^3), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9 + x2^10 + 
+   x2^11)/((-4 + x2)*(-rr17 + x2)^2*(-rr18 + x2)^2*(-8*nb - x2 + nb*x2)^2*
+   (-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)^3*
+   (-4*nb - 4*na*nb - na*x2 + na*nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9 + x2^10 + 
+   x2^11)/((-4 + x2)*(-rr17 + x2)^2*(-rr18 + x2)^2*(-8*nb - x2 + nb*x2)^2*
+   (-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)^3*
+   (-2*nb - 6*na*nb - na*x2 + na*nb*x2)), 
+ (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - x2^7 - x2^8 - x2^9 - x2^10 - 
+   x2^11 - x2^12)/((rr11 - x2)^2*(-rr12 + x2)^2*(-1 + na + x2 + na*x2)^2*
+   (1 - na - x2 + nb*x2)^3*(1 + nb - x2 + nb*x2)^2*
+   (-nb + na*nb - na*x2 + na*nb*x2)*(-2*nb + 2*na*nb - na*x2 + nb*x2 + 
+     na*nb*x2 - nb^2*x2)^2), (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - 
+   x2^7 - x2^8 - x2^9 - x2^10 - x2^11 - x2^12)/((rr11 - x2)^2*(-rr12 + x2)^2*
+   (-1 + na + x2 + na*x2)^2*(1 - na - x2 + nb*x2)^3*(1 + nb - x2 + nb*x2)^2*
+   (-nb + na*nb - na*x2 + na*nb*x2)*(2*na + nb + na*nb - na*x2 + na*nb*x2)*
+   (-2*nb + 2*na*nb - na*x2 + nb*x2 + na*nb*x2 - nb^2*x2)^2), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7)/
+  ((-1 + x2)*(-rr13 + x2)*(-rr14 + x2)*(1 - x2 + nb*x2)^2*(2 - x2 + nb*x2)*
+   (2*na + nb + na*nb - 2*na*x2 + 2*na*nb*x2)^2), 
+ (1 + x2 + x2^2 + x2^3)/((-1 + x2)*(-rr13 + x2)*(-rr14 + x2)*
+   (1 - x2 + nb*x2)^2*(2 - x2 + nb*x2)*(1 + nb - x2 + nb*x2)*
+   (2*na + nb + na*nb - 2*na*x2 + 2*na*nb*x2)^2), 
+ (1 + x2 + x2^2 + x2^3)/((rr11 - x2)*(-rr12 + x2)*(-1 + na + x2 + na*x2)*
+   (1 - na - x2 + nb*x2)^2*(1 + nb - x2 + nb*x2)*
+   (-nb + na*nb - na*x2 + na*nb*x2)^2*(-2*nb + 2*na*nb - na*x2 + nb*x2 + 
+    na*nb*x2 - nb^2*x2)), (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + 
+   x2^8 + x2^9 + x2^10)/((-1 + x2)^2*(-rr13 + x2)^2*(-rr14 + x2)^2*
+   (1 - x2 + nb*x2)^3*(2 - x2 + nb*x2)*(2*na + nb + na*nb - 2*na*x2 + 
+    2*na*nb*x2)), (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + 
+   x2^9 + x2^10)/((-1 + x2)^2*(-rr13 + x2)^2*(-rr14 + x2)^2*
+   (1 - x2 + nb*x2)^3*(2 - x2 + nb*x2)*(1 + nb - x2 + nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9 + x2^10 + 
+   x2^11 + x2^12)/((-2 + x2)^2*(-rr15 + x2)^2*(-rr16 + x2)^2*
+   (2 - x2 + nb*x2)^3*(4 - x2 + nb*x2)*(2 + 2*nb - x2 + nb*x2)^2*
+   (2*na + 2*nb - na*x2 + na*nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6)/((rr11 - x2)*(-rr12 + x2)*
+   (-1 + na + x2 + na*x2)*(1 - na - x2 + nb*x2)^2*(1 + nb - x2 + nb*x2)*
+   (-nb + na*nb - na*x2 + na*nb*x2)*(-2*nb + 2*na*nb - na*x2 + nb*x2 + 
+    na*nb*x2 - nb^2*x2)), (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6)/
+  ((rr11 - x2)*(-rr12 + x2)*(-1 + na + x2 + na*x2)*(1 - na - x2 + nb*x2)^2*
+   (1 + nb - x2 + nb*x2)*(-nb + na*nb - na*x2 + na*nb*x2)*
+   (2*na + nb + na*nb - na*x2 + na*nb*x2)^2*(-2*nb + 2*na*nb - na*x2 + 
+    nb*x2 + na*nb*x2 - nb^2*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9 + x2^10 + 
+   x2^11 + x2^12)/((-2 + x2)^2*(-rr15 + x2)^2*(-rr16 + x2)^2*
+   (2 - x2 + nb*x2)^3*(4 - x2 + nb*x2)*(2 + 2*nb - x2 + nb*x2)^2*
+   (2*na + 2*nb - na*x2 - nb*x2 + 2*na*nb*x2)), 
+ (1 + x2 + x2^2 + x2^3)/((rr11 - x2)*(-rr12 + x2)*(-1 + na + x2 + na*x2)*
+   (1 - na - x2 + nb*x2)^2*(1 + nb - x2 + nb*x2)*
+   (-nb + na*nb - na*x2 + na*nb*x2)^2*(2*na + nb + na*nb - na*x2 + na*nb*x2)^
+    2*(-2*nb + 2*na*nb - na*x2 + nb*x2 + na*nb*x2 - nb^2*x2)), 
+ (x2 + x2^2 + x2^3)/((rr11 - x2)*(-rr12 + x2)*(-1 + na + x2 + na*x2)*
+   (1 - na - x2 + nb*x2)^2*(1 + nb - x2 + nb*x2)*
+   (-nb + na*nb - na*x2 + na*nb*x2)^3*(2*na + nb + na*nb - na*x2 + na*nb*x2)^
+    2*(-2*nb + 2*na*nb - na*x2 + nb*x2 + na*nb*x2 - nb^2*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9 + x2^10 + 
+   x2^11 + x2^12 + x2^13)/((-2 + x2)^2*(2 + x2)*(-rr19 + x2)^2*(-rr20 + x2)^2*
+   (2 + 2*nb - x2 + nb*x2)^3*(6 + 2*nb - x2 + nb*x2)*
+   (2 + 6*nb - x2 + nb*x2)^2*(2*na + 4*nb + 2*na*nb - na*x2 + na*nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9 + x2^10 + 
+   x2^11 + x2^12 + x2^13)/((-2 + x2)^2*(2 + x2)*(-rr19 + x2)^2*(-rr20 + x2)^2*
+   (2 + 2*nb - x2 + nb*x2)^3*(6 + 2*nb - x2 + nb*x2)*
+   (2 + 6*nb - x2 + nb*x2)^2*(2*na + 2*nb + 4*na*nb - na*x2 + na*nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7)/
+  ((-1 + x2)^2*(-rr13 + x2)^2*(-rr14 + x2)^2*(1 - x2 + nb*x2)^3*
+   (2 - x2 + nb*x2)*(1 + nb - x2 + nb*x2)^3), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7)/
+  ((-1 + x2)^2*(-rr13 + x2)^2*(-rr14 + x2)^2*(1 - x2 + nb*x2)^3*
+   (2 - x2 + nb*x2)*(1 + nb - x2 + nb*x2)^2*(2*na + nb + na*nb - 2*na*x2 + 
+    2*na*nb*x2)), (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - x2^7 - x2^8 - 
+   x2^9)/((rr11 - x2)^2*(-rr12 + x2)^2*(-1 + na + x2 + na*x2)^2*
+   (1 - na - x2 + nb*x2)^3*(1 + nb - x2 + nb*x2)^2*
+   (-nb + na*nb - na*x2 + na*nb*x2)^2*(2*na + nb + na*nb - na*x2 + na*nb*x2)*
+   (-2*nb + 2*na*nb - na*x2 + nb*x2 + na*nb*x2 - nb^2*x2)^2), 
+ (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - x2^7 - x2^8 - x2^9)/
+  ((rr11 - x2)^2*(-rr12 + x2)^2*(-1 + na + x2 + na*x2)^2*
+   (1 - na - x2 + nb*x2)^3*(1 + nb - x2 + nb*x2)^2*
+   (-nb + na*nb - na*x2 + na*nb*x2)^2*
+   (-2*nb + 2*na*nb - na*x2 + nb*x2 + na*nb*x2 - nb^2*x2)^2), 
+ (-x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - x2^7 - x2^8 - x2^9)/
+  ((rr11 - x2)^2*(-rr12 + x2)^2*(-1 + na + x2 + na*x2)^2*
+   (1 - na - x2 + nb*x2)^3*(1 + nb - x2 + nb*x2)^2*
+   (-nb + na*nb - na*x2 + na*nb*x2)^3*(2*na + nb + na*nb - na*x2 + na*nb*x2)*
+   (-2*nb + 2*na*nb - na*x2 + nb*x2 + na*nb*x2 - nb^2*x2)^2), 
+ (-x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - x2^7 - x2^8 - x2^9)/
+  ((rr11 - x2)^2*(-rr12 + x2)^2*(-1 + na + x2 + na*x2)^2*
+   (1 - na - x2 + nb*x2)^3*(1 + nb - x2 + nb*x2)^2*
+   (-nb + na*nb - na*x2 + na*nb*x2)^3*
+   (-2*nb + 2*na*nb - na*x2 + nb*x2 + na*nb*x2 - nb^2*x2)^2), 
+ (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - x2^7 - x2^8 - x2^9 - x2^10 - 
+   x2^11)/((rr1 - x2)*(-rr2 + x2)*(-rr3 + x2)*(-rr4 + x2)*(1 - x2 + nb*x2)^3*
+   (1 - na - x2 + nb*x2)^3*(-1 + na - x2 + nb*x2)*
+   (1 - 2*na + na^2 - x2 - na*x2 + nb*x2 + na*nb*x2)), 
+ (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - x2^7 - x2^8 - x2^9 - x2^10 - 
+   x2^11 - x2^12 - x2^13 - x2^14 - x2^15 - x2^16 - x2^17 - x2^18 - x2^19 - 
+   x2^20)/((-4 + x2)*(-rr17 + x2)^3*(-rr18 + x2)^3*(-rr3 + x2)*(-rr4 + x2)*
+   (1 - x2 + nb*x2)^3*(2 - x2 + nb*x2)*(1 - na - x2 + nb*x2)*
+   (-1 + na - x2 + nb*x2)*(-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)^3*
+   (-1 + na - na*x2 + na*nb*x2)), 
+ -(1/(x2*(-rr13 + x2)^3*(-rr14 + x2)^3*(-rr7 + x2)*(-rr8 + x2)*
+    (1 - x2 + nb*x2)^3*(2 - x2 + nb*x2)*(-1 + na - x2 + nb*x2)*
+    (1 + na - x2 + nb*x2)*(-4*nb - x2 + nb*x2)^3*(-4*na - 4*nb - x2 + nb*x2)*
+    (4*na - 4*nb - x2 + nb*x2)*(-1 + na - na*x2 + na*nb*x2))), 
+ (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - x2^7 - x2^8 - x2^9 - x2^10 - 
+   x2^11 - x2^12 - x2^13 - x2^14 - x2^15 - x2^16 - x2^17 - x2^18 - x2^19 - 
+   x2^20)/((rr13 - x2)^3*(-rr14 + x2)^3*(-rr7 + x2)*(-rr8 + x2)*
+   (1 - x2 + nb*x2)^3*(2 - x2 + nb*x2)*(-1 + na - x2 + nb*x2)*
+   (1 + na - x2 + nb*x2)*(-4*nb - x2 + nb*x2)^3*(-4*na - 4*nb - x2 + nb*x2)*
+   (4*na - 4*nb - x2 + nb*x2)*(-1 + na - na*x2 + na*nb*x2)), 
+ 1/((-4 + x2)*x2*(2 + x2)*(-rr1 + x2)*(-rr10 + x2)*(-rr11 + x2)^3*
+   (-rr12 + x2)^3*(-rr15 + x2)^3*(-rr16 + x2)^3*(-rr17 + x2)^3*(-rr18 + x2)^3*
+   (-rr2 + x2)*(-rr5 + x2)*(-rr6 + x2)*(-rr7 + x2)*(-rr8 + x2)*(-rr9 + x2)*
+   (1 - x2 + nb*x2)*(2 - x2 + nb*x2)*(4 - x2 + nb*x2)*(1 - na - x2 + nb*x2)^3*
+   (-1 + na - x2 + nb*x2)*(-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)*
+   (-4*na - 4*nb - x2 + nb*x2)*(4*na - 4*nb - x2 + nb*x2)*
+   (2 + 2*nb - x2 + nb*x2)^3*(6 + 2*nb - x2 + nb*x2)*
+   (2 - 4*na + 2*nb - x2 + nb*x2)*(2 + 4*na + 2*nb - x2 + nb*x2)*
+   (-1 + na - na*x2 + na*nb*x2)*(1 + na - na*x2 + na*nb*x2)*
+   (-2 + 2*na - na*x2 + na*nb*x2)*(2 + 2*na - na*x2 + na*nb*x2)*
+   (-nb + na*nb - na*x2 + na*nb*x2)^3*(-4 + 2*na + 2*na*nb - na*x2 + 
+    na*nb*x2)*(4 + 2*na + 2*na*nb - na*x2 + na*nb*x2)*
+   (1 - 2*na + na^2 - x2 - na*x2 + nb*x2 + na*nb*x2)*
+   (2*nb - 2*na*nb + na*x2 - nb*x2 - na*nb*x2 + nb^2*x2)^3), 
+ -((-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - x2^7 - x2^8 - x2^9 - x2^10 - 
+    x2^11 - x2^12 - x2^13 - x2^14 - x2^15 - x2^16 - x2^17 - x2^18 - x2^19 - 
+    x2^20 - x2^21 - x2^22 - x2^23 - x2^24 - x2^25 - x2^26 - x2^27 - x2^28 - 
+    x2^29 - x2^30 - x2^31 - x2^32 - x2^33 - x2^34 - x2^35 - x2^36 - x2^37 - 
+    x2^38 - x2^39 - x2^40 - x2^41 - x2^42 - x2^43 - x2^44 - x2^45 - x2^46 - 
+    x2^47 - x2^48 - x2^49 - x2^50 - x2^51 - x2^52 - x2^53 - x2^54 - x2^55 - 
+    x2^56 - x2^57 - x2^58)/((-4 + x2)*(2 + x2)*(-rr1 + x2)*(-rr10 + x2)*
+    (-rr11 + x2)^3*(-rr12 + x2)^3*(-rr15 + x2)^3*(-rr16 + x2)^3*
+    (-rr17 + x2)^3*(-rr18 + x2)^3*(-rr2 + x2)*(-rr5 + x2)*(-rr6 + x2)*
+    (-rr7 + x2)*(-rr8 + x2)*(-rr9 + x2)*(1 - x2 + nb*x2)*(2 - x2 + nb*x2)*
+    (4 - x2 + nb*x2)*(1 - na - x2 + nb*x2)^3*(-1 + na - x2 + nb*x2)*
+    (-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)*(-4*na - 4*nb - x2 + nb*x2)*
+    (4*na - 4*nb - x2 + nb*x2)*(2 + 2*nb - x2 + nb*x2)^3*
+    (6 + 2*nb - x2 + nb*x2)*(2 - 4*na + 2*nb - x2 + nb*x2)*
+    (2 + 4*na + 2*nb - x2 + nb*x2)*(-1 + na - na*x2 + na*nb*x2)*
+    (1 + na - na*x2 + na*nb*x2)*(-2 + 2*na - na*x2 + na*nb*x2)*
+    (2 + 2*na - na*x2 + na*nb*x2)*(-nb + na*nb - na*x2 + na*nb*x2)^3*
+    (-4 + 2*na + 2*na*nb - na*x2 + na*nb*x2)*(4 + 2*na + 2*na*nb - na*x2 + 
+     na*nb*x2)*(1 - 2*na + na^2 - x2 - na*x2 + nb*x2 + na*nb*x2)*
+    (2*nb - 2*na*nb + na*x2 - nb*x2 - na*nb*x2 + nb^2*x2)^3)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9 + x2^10 + 
+   x2^11 + x2^12 + x2^13 + x2^14 + x2^15 + x2^16 + x2^17 + x2^18 + x2^19 + 
+   x2^20 + x2^21 + x2^22 + x2^23 + x2^24 + x2^25 + x2^26 + x2^27 + x2^28)/
+  ((2 + x2)*(-rr1 + x2)*(-rr10 + x2)*(-rr19 + x2)^3*(-rr2 + x2)*
+   (-rr20 + x2)^3*(-rr3 + x2)*(-rr4 + x2)*(-rr9 + x2)*(1 - x2 + nb*x2)^3*
+   (1 - na - x2 + nb*x2)^3*(-1 + na - x2 + nb*x2)*(2 + 2*nb - x2 + nb*x2)^3*
+   (6 + 2*nb - x2 + nb*x2)*(2 - 4*na + 2*nb - x2 + nb*x2)*
+   (2 + 4*na + 2*nb - x2 + nb*x2)*(-4 + 2*na + 2*na*nb - na*x2 + na*nb*x2)*
+   (4 + 2*na + 2*na*nb - na*x2 + na*nb*x2)*(1 - 2*na + na^2 - x2 - na*x2 + 
+    nb*x2 + na*nb*x2)), 1/(x2*(-rr13 + x2)^3*(-rr14 + x2)^3*
+   (1 - x2 + nb*x2)^3*(2 - x2 + nb*x2)*(-1 + na - x2 + nb*x2)*
+   (1 + na - x2 + nb*x2)*(-1 + na - na*x2 + na*nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9 + x2^10 + 
+   x2^11 + x2^12 + x2^13)/((rr13 - x2)^3*(-rr14 + x2)^3*(1 - x2 + nb*x2)^3*
+   (2 - x2 + nb*x2)*(-1 + na - x2 + nb*x2)*(1 + na - x2 + nb*x2)*
+   (-1 + na - na*x2 + na*nb*x2)), (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5)/
+  ((1 - x2 + nb*x2)*(2 - x2 + nb*x2)*(-1 + na - x2 + nb*x2)*
+   (1 + na - x2 + nb*x2)*(-1 + na - na*x2 + na*nb*x2)), 
+ 1/((-4 + x2)*x2*(2 + x2)*(-rr10 + x2)*(-rr15 + x2)^3*(-rr16 + x2)^3*
+   (-rr17 + x2)^3*(-rr18 + x2)^3*(-rr19 + x2)^3*(-rr20 + x2)^3*(-rr5 + x2)*
+   (-rr6 + x2)*(-rr7 + x2)*(-rr8 + x2)*(-rr9 + x2)*(1 - x2 + nb*x2)*
+   (2 - x2 + nb*x2)*(4 - x2 + nb*x2)*(-1 + na - x2 + nb*x2)*
+   (1 + na - x2 + nb*x2)*(-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)*
+   (2 + 2*nb - x2 + nb*x2)*(6 + 2*nb - x2 + nb*x2)*
+   (-1 + na - na*x2 + na*nb*x2)*(-2 + 2*na - na*x2 + na*nb*x2)*
+   (2 + 2*na - na*x2 + na*nb*x2)*(-4 - 4*na*nb - na*x2 + na*nb*x2)*
+   (4 - 4*na*nb - na*x2 + na*nb*x2)*(-4 + 2*na + 2*na*nb - na*x2 + na*nb*x2)*
+   (4 + 2*na + 2*na*nb - na*x2 + na*nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9 + x2^10 + 
+   x2^11 + x2^12 + x2^13 + x2^14 + x2^15 + x2^16 + x2^17 + x2^18 + x2^19 + 
+   x2^20 + x2^21 + x2^22 + x2^23 + x2^24 + x2^25 + x2^26 + x2^27 + x2^28 + 
+   x2^29 + x2^30 + x2^31 + x2^32 + x2^33 + x2^34 + x2^35 + x2^36 + x2^37 + 
+   x2^38 + x2^39 + x2^40 + x2^41 + x2^42)/((-4 + x2)*(2 + x2)*(-rr10 + x2)*
+   (-rr15 + x2)^3*(-rr16 + x2)^3*(-rr17 + x2)^3*(-rr18 + x2)^3*(-rr19 + x2)^3*
+   (-rr20 + x2)^3*(-rr5 + x2)*(-rr6 + x2)*(-rr7 + x2)*(-rr8 + x2)*(-rr9 + x2)*
+   (1 - x2 + nb*x2)*(2 - x2 + nb*x2)*(4 - x2 + nb*x2)*(-1 + na - x2 + nb*x2)*
+   (1 + na - x2 + nb*x2)*(-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)*
+   (2 + 2*nb - x2 + nb*x2)*(6 + 2*nb - x2 + nb*x2)*
+   (-1 + na - na*x2 + na*nb*x2)*(-2 + 2*na - na*x2 + na*nb*x2)*
+   (2 + 2*na - na*x2 + na*nb*x2)*(-4 - 4*na*nb - na*x2 + na*nb*x2)*
+   (4 - 4*na*nb - na*x2 + na*nb*x2)*(-4 + 2*na + 2*na*nb - na*x2 + na*nb*x2)*
+   (4 + 2*na + 2*na*nb - na*x2 + na*nb*x2)), 
+ -(1/((-4 + x2)*x2*(2 + x2)*(1 - x2 + nb*x2)*(2 - x2 + nb*x2)*
+    (1 + na - x2 + nb*x2)*(-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)*
+    (-4*na - 4*nb - x2 + nb*x2)*(2 + 2*nb - x2 + nb*x2)*
+    (6 + 2*nb - x2 + nb*x2)*(2 + 4*na + 2*nb - x2 + nb*x2)*
+    (-1 + na - na*x2 + na*nb*x2)*(4 - 4*na*nb - na*x2 + na*nb*x2)*
+    (-4 + 2*na + 2*na*nb - na*x2 + na*nb*x2))), 
+ (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - x2^7 - x2^8 - x2^9 - x2^10 - 
+   x2^11 - x2^12 - x2^13 - x2^14)/((-4 + x2)*(2 + x2)*(1 - x2 + nb*x2)*
+   (2 - x2 + nb*x2)*(1 + na - x2 + nb*x2)*(-4 - 4*nb - x2 + nb*x2)*
+   (-4*nb - x2 + nb*x2)*(-4*na - 4*nb - x2 + nb*x2)*(2 + 2*nb - x2 + nb*x2)*
+   (6 + 2*nb - x2 + nb*x2)*(2 + 4*na + 2*nb - x2 + nb*x2)*
+   (-1 + na - na*x2 + na*nb*x2)*(4 - 4*na*nb - na*x2 + na*nb*x2)*
+   (-4 + 2*na + 2*na*nb - na*x2 + na*nb*x2)), 
+ 1/((-4 + x2)*x2*(-rr15 + x2)^3*(-rr16 + x2)^3*(-rr17 + x2)^3*(-rr18 + x2)^3*
+   (-rr5 + x2)*(-rr6 + x2)*(-rr7 + x2)*(-rr8 + x2)*(2 - x2 + nb*x2)*
+   (4 - x2 + nb*x2)*(-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)*
+   (-2 + 2*na - na*x2 + na*nb*x2)*(2 + 2*na - na*x2 + na*nb*x2)*
+   (-4 - 4*na*nb - na*x2 + na*nb*x2)*(4 - 4*na*nb - na*x2 + na*nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9 + x2^10 + 
+   x2^11 + x2^12 + x2^13 + x2^14 + x2^15 + x2^16)/
+  ((-4 + x2)*(-rr15 + x2)^3*(-rr16 + x2)^3*(-rr17 + x2)^3*(-rr18 + x2)^3*
+   (-rr5 + x2)*(-rr6 + x2)*(-rr7 + x2)*(-rr8 + x2)*(2 - x2 + nb*x2)*
+   (4 - x2 + nb*x2)*(-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)*
+   (-2 + 2*na - na*x2 + na*nb*x2)*(2 + 2*na - na*x2 + na*nb*x2)*
+   (-4 - 4*na*nb - na*x2 + na*nb*x2)*(4 - 4*na*nb - na*x2 + na*nb*x2)), 
+ 1/(x2*(2 - x2 + nb*x2)*(4 - x2 + nb*x2)*(2 + 2*na - x2 + nb*x2)*
+   (-2 + 2*na - na*x2 + na*nb*x2)), 
+ 1/((2 - x2 + nb*x2)*(4 - x2 + nb*x2)*(2 + 2*na - x2 + nb*x2)*
+   (-2 + 2*na - na*x2 + na*nb*x2)), 
+ (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - x2^7 - x2^8 - x2^9 - x2^10 - 
+   x2^11 - x2^12 - x2^13 - x2^14)/((-4 + x2)*(2 + x2)*
+   (-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)*(4*na - 4*nb - x2 + nb*x2)*
+   (2 + 2*nb - x2 + nb*x2)*(6 + 2*nb - x2 + nb*x2)*
+   (2 - 4*na + 2*nb - x2 + nb*x2)*(1 - na - na*x2 + na*nb*x2)*
+   (-4 - 4*na*nb - na*x2 + na*nb*x2)*(4 + 2*na + 2*na*nb - na*x2 + na*nb*x2)*
+   (2 - 2*na - x2 - na*x2 + nb*x2 + na*nb*x2)*(1 - na - x2 - na*x2 + nb*x2 + 
+    na*nb*x2)*(1 - 2*na + na^2 - x2 - na*x2 + nb*x2 + na*nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4)/((-1 + na + x2 - nb*x2)*(1 - x2 + nb*x2)*
+   (2 - x2 + nb*x2)*(1 + na - na*x2 + na*nb*x2)), 
+ 1/(x2*(2 - x2 + nb*x2)*(4 - x2 + nb*x2)*(2 - 2*na - x2 + nb*x2)*
+   (2 + 2*na - na*x2 + na*nb*x2)), 
+ 1/((2 - x2 + nb*x2)*(4 - x2 + nb*x2)*(2 - 2*na - x2 + nb*x2)*
+   (2 + 2*na - na*x2 + na*nb*x2)), 
+ (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6)/((rr3 - x2)*(-rr4 + x2)*
+   (1 - x2 + nb*x2)^3*(1 - na - x2 + nb*x2)*(1 + na - x2 + nb*x2)), 
+ -(1/(x2*(-rr3 + x2)*(-rr4 + x2)*(1 - x2 + nb*x2)^3*(2 - x2 + nb*x2)*
+    (1 - na - x2 + nb*x2)*(1 + na - x2 + nb*x2)*(-1 + na - na*x2 + 
+     na*nb*x2))), (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - x2^7 - x2^8)/
+  ((rr3 - x2)*(-rr4 + x2)*(1 - x2 + nb*x2)^3*(2 - x2 + nb*x2)*
+   (1 - na - x2 + nb*x2)*(1 + na - x2 + nb*x2)*(-1 + na - na*x2 + na*nb*x2)), 
+ (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6)/((rr1 - x2)*(-rr2 + x2)*
+   (1 - na - x2 + nb*x2)^3*(-1 + na - x2 + nb*x2)*(1 + na - x2 + nb*x2)*
+   (1 - 2*na + na^2 - x2 - na*x2 + nb*x2 + na*nb*x2)), 
+ 1/(x2^2*(-rr5 + x2)*(-rr6 + x2)*(2 - x2 + nb*x2)^3*(2 - 2*na - x2 + nb*x2)*
+   (1 - na - x2 + nb*x2)*(2 + 2*na - x2 + nb*x2)*
+   (2 - 2*na - x2 - na*x2 + nb*x2 + na*nb*x2)*
+   (2*nb - 2*na*nb + na*x2 - nb*x2 - na*nb*x2 + nb^2*x2)^3), 
+ 1/(x2*(-rr5 + x2)*(-rr6 + x2)*(2 - x2 + nb*x2)^3*(2 - 2*na - x2 + nb*x2)*
+   (1 - na - x2 + nb*x2)*(2 + 2*na - x2 + nb*x2)*
+   (2 - 2*na - x2 - na*x2 + nb*x2 + na*nb*x2)*
+   (2*nb - 2*na*nb + na*x2 - nb*x2 - na*nb*x2 + nb^2*x2)^3), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9 + x2^10 + 
+   x2^11)/((rr5 - x2)*(-rr6 + x2)*(2 - x2 + nb*x2)^3*(2 - 2*na - x2 + nb*x2)*
+   (1 - na - x2 + nb*x2)*(2 + 2*na - x2 + nb*x2)*
+   (2 - 2*na - x2 - na*x2 + nb*x2 + na*nb*x2)*
+   (2*nb - 2*na*nb + na*x2 - nb*x2 - na*nb*x2 + nb^2*x2)^3), 
+ 1/(x2*(1 - x2 + nb*x2)*(2 - x2 + nb*x2)*(1 - na - x2 + nb*x2)^3*
+   (1 + na - x2 + nb*x2)*(-1 + na - na*x2 + na*nb*x2)*
+   (1 - na - x2 - na*x2 + nb*x2 + na*nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6)/
+  ((1 - x2 + nb*x2)*(2 - x2 + nb*x2)*(1 - na - x2 + nb*x2)^3*
+   (1 + na - x2 + nb*x2)*(-1 + na - na*x2 + na*nb*x2)*
+   (1 - na - x2 - na*x2 + nb*x2 + na*nb*x2)), 
+ -(1/(x2*(-rr1 + x2)*(-rr11 + x2)^3*(-rr12 + x2)^3*(-rr2 + x2)*
+    (1 - na - x2 + nb*x2)*(-1 + na - x2 + nb*x2)*(1 - na - na*x2 + na*nb*x2)*
+    (-1 + na - na*x2 + na*nb*x2))), 
+ 1/(x2*(-rr1 + x2)*(-rr11 + x2)^3*(-rr12 + x2)^3*(-rr2 + x2)*
+   (1 - na - x2 + nb*x2)*(-1 + na - x2 + nb*x2)*(1 - na - na*x2 + na*nb*x2)*
+   (-1 + na - na*x2 + na*nb*x2)), (-x2 - x2^3)/((rr1 - x2)*(-rr11 + x2)^3*
+   (-rr12 + x2)^3*(-rr2 + x2)*(1 - na - x2 + nb*x2)*(-1 + na - x2 + nb*x2)*
+   (1 - na - na*x2 + na*nb*x2)*(-1 + na - na*x2 + na*nb*x2)), 
+ (x2 + x2^3)/((rr1 - x2)*(-rr11 + x2)^3*(-rr12 + x2)^3*(-rr2 + x2)*
+   (1 - na - x2 + nb*x2)*(-1 + na - x2 + nb*x2)*(1 - na - na*x2 + na*nb*x2)*
+   (-1 + na - na*x2 + na*nb*x2)), 
+ -(1/(x2*(-rr11 + x2)^3*(-rr12 + x2)^3*(1 - na - x2 + nb*x2)^3*
+    (-1 + na - x2 + nb*x2)*(-nb + na*nb - na*x2 + na*nb*x2)^3*
+    (-2*nb + 2*na*nb - na*x2 + nb*x2 + na*nb*x2 - nb^2*x2)^3)), 
+ (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - x2^7 - x2^8 - x2^9 - x2^10 - 
+   x2^11 - x2^12 - x2^13 - x2^14 - x2^15 - x2^16)/
+  ((rr11 - x2)^3*(-rr12 + x2)^3*(1 - na - x2 + nb*x2)^3*
+   (-1 + na - x2 + nb*x2)*(-nb + na*nb - na*x2 + na*nb*x2)^3*
+   (-2*nb + 2*na*nb - na*x2 + nb*x2 + na*nb*x2 - nb^2*x2)^3), 
+ 1/(x2*(-rr13 + x2)^3*(-rr14 + x2)^3*(1 - x2 + nb*x2)^3*(2 - x2 + nb*x2)*
+   (1 + na - x2 + nb*x2)*(-1 + na - na*x2 + na*nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9 + x2^10 + 
+   x2^11)/((rr13 - x2)^3*(-rr14 + x2)^3*(1 - x2 + nb*x2)^3*(2 - x2 + nb*x2)*
+   (1 + na - x2 + nb*x2)*(-1 + na - na*x2 + na*nb*x2)), 
+ -((-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - x2^7 - x2^8 - x2^9 - x2^10 - 
+    x2^11 - x2^12 - x2^13 - x2^14 - x2^15 - x2^16 - x2^17 - x2^18 - x2^19 - 
+    x2^20 - x2^21 - x2^22 - x2^23 - x2^24)/((rr11 - x2)^3*(-rr12 + x2)^3*
+    (-rr13 + x2)^3*(-rr14 + x2)^3*(1 - x2 + nb*x2)^3*(2 - x2 + nb*x2)*
+    (1 - na - x2 + nb*x2)^3*(-nb + na*nb - na*x2 + na*nb*x2)^3*
+    (2*nb - 2*na*nb + na*x2 - nb*x2 - na*nb*x2 + nb^2*x2)^3)), 
+ (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6)/((rr5 - x2)*(-rr6 + x2)*
+   (2 - x2 + nb*x2)^3*(2 - 2*na - x2 + nb*x2)*(2 + 2*na - x2 + nb*x2)), 
+ 1/(x2*(-rr15 + x2)^3*(-rr16 + x2)^3*(-rr5 + x2)*(-rr6 + x2)*(2 - x2 + nb*x2)*
+   (4 - x2 + nb*x2)*(-2 + 2*na - na*x2 + na*nb*x2)*
+   (2 + 2*na - na*x2 + na*nb*x2)), (1 + x2 + x2^2 + x2^3)/
+  ((rr15 - x2)^3*(-rr16 + x2)^3*(-rr5 + x2)*(-rr6 + x2)*(2 - x2 + nb*x2)*
+   (4 - x2 + nb*x2)*(-2 + 2*na - na*x2 + na*nb*x2)*
+   (2 + 2*na - na*x2 + na*nb*x2)), 
+ (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6)/((rr10 - x2)*(-rr9 + x2)*
+   (2 + 2*nb - x2 + nb*x2)^3*(2 - 4*na + 2*nb - x2 + nb*x2)*
+   (2 + 4*na + 2*nb - x2 + nb*x2)), 
+ (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6)/((rr7 - x2)*(-rr8 + x2)*
+   (-4*nb - x2 + nb*x2)^3*(-4*na - 4*nb - x2 + nb*x2)*
+   (4*na - 4*nb - x2 + nb*x2)), 1/(x2*(-rr15 + x2)^3*(-rr16 + x2)^3*
+   (2 - x2 + nb*x2)^3*(4 - x2 + nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9)/
+  ((rr15 - x2)^3*(-rr16 + x2)^3*(2 - x2 + nb*x2)^3*(4 - x2 + nb*x2)), 
+ 1/(x2*(-rr13 + x2)^3*(-rr14 + x2)^3*(-rr3 + x2)*(-rr4 + x2)*(1 - x2 + nb*x2)*
+   (2 - x2 + nb*x2)*(-1 + na - na*x2 + na*nb*x2)*
+   (1 + na - na*x2 + na*nb*x2)), (1 + x2 + x2^2 + x2^3)/
+  ((rr13 - x2)^3*(-rr14 + x2)^3*(-rr3 + x2)*(-rr4 + x2)*(1 - x2 + nb*x2)*
+   (2 - x2 + nb*x2)*(-1 + na - na*x2 + na*nb*x2)*
+   (1 + na - na*x2 + na*nb*x2)), (1 + x2 + x2^2 + x2^3 + x2^4)/
+  ((-4 + x2)*(-rr17 + x2)^3*(-rr18 + x2)^3*(-rr7 + x2)*(-rr8 + x2)*
+   (-4 - 4*nb - x2 + nb*x2)*(-4*nb - x2 + nb*x2)*
+   (-4 - 4*na*nb - na*x2 + na*nb*x2)*(4 - 4*na*nb - na*x2 + na*nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4)/((2 + x2)*(-rr10 + x2)*(-rr19 + x2)^3*
+   (-rr20 + x2)^3*(-rr9 + x2)*(2 + 2*nb - x2 + nb*x2)*(6 + 2*nb - x2 + nb*x2)*
+   (-4 + 2*na + 2*na*nb - na*x2 + na*nb*x2)*(4 + 2*na + 2*na*nb - na*x2 + 
+    na*nb*x2)), 1/(x2*(-rr13 + x2)^3*(-rr14 + x2)^3*(1 - x2 + nb*x2)^3*
+   (2 - x2 + nb*x2)), (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + 
+   x2^8 + x2^9)/((rr13 - x2)^3*(-rr14 + x2)^3*(1 - x2 + nb*x2)^3*
+   (2 - x2 + nb*x2)), (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + 
+   x2^8 + x2^9 + x2^10)/((2 + x2)*(-rr19 + x2)^3*(-rr20 + x2)^3*
+   (2 + 2*nb - x2 + nb*x2)^3*(6 + 2*nb - x2 + nb*x2)), 
+ (1 + x2 + x2^2 + x2^3 + x2^4 + x2^5 + x2^6 + x2^7 + x2^8 + x2^9 + x2^10)/
+  ((-4 + x2)*(-rr17 + x2)^3*(-rr18 + x2)^3*(-4 - 4*nb - x2 + nb*x2)*
+   (-4*nb - x2 + nb*x2)^3), 
+ -(1/(x2*(-rr11 + x2)^3*(-rr12 + x2)^3*(1 - na - x2 + nb*x2)^3*
+    (-nb + na*nb - na*x2 + na*nb*x2)^3*(-2*nb + 2*na*nb - na*x2 + nb*x2 + 
+      na*nb*x2 - nb^2*x2)^3)), (-1 - x2 - x2^2 - x2^3 - x2^4 - x2^5 - x2^6 - 
+   x2^7 - x2^8 - x2^9 - x2^10 - x2^11 - x2^12 - x2^13)/
+  ((rr11 - x2)^3*(-rr12 + x2)^3*(1 - na - x2 + nb*x2)^3*
+   (-nb + na*nb - na*x2 + na*nb*x2)^3*
+   (-2*nb + 2*na*nb - na*x2 + nb*x2 + na*nb*x2 - nb^2*x2)^3)}
