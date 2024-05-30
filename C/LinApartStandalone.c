@@ -4,10 +4,10 @@
 
 static void usage(void)
 {
-    fputs("Usage: LinApart <multiplicities> <constants>\n", stderr);
-    fputs("  <multiplicities>: Comma-separated list of multiplicities (e.g., \"1,2,3,4\")\n", stderr);
-    fputs("  <constants>: Comma-separated list of constants (e.g., \"a,b,c,d\")\n", stderr);
-    fputs("  multiplicities should contain 1 element more than constants (the power of the numerator)\n", stderr);
+    fputs("Usage: LinApart <exponents> <roots>\n", stderr);
+    fputs("  <exponents>: Comma-separated list of exponents (e.g., \"1,2,3,4\")\n", stderr);
+    fputs("  <roots>: Comma-separated list of roots (e.g., \"a,b,c,d\")\n", stderr);
+    fputs("  exponents should contain 1 element more than roots (the exponent of the monomial in the numerator)\n", stderr);
     fputs("Example: LinApart \"1,2,3\" \"a1,a2\"\n", stderr);
 }
 
