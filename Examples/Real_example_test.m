@@ -13,9 +13,6 @@ Import["LinApart.m"];
 exampleSimple=Import["exampleSimple.mx"];
 
 
-exampleComplicated=Import["exampleComplicated.mx"];
-
-
 structures=Import["PF_structures"]//ToExpression;
 
 
@@ -27,66 +24,20 @@ structures=Import["PF_structures"]//ToExpression;
 (*Examples from the article*)
 
 
-(*
-The usage of the LinApart command mimics that of the standard Apart command.
-
-LinApart[expr, var] returns the partial fraction decomposition of expr with 
-respect to the variable var.
-*)
-
-
 LinApart[1/((1 + x)(2 + x)(3 + x)),x]
-
-
-(*
-Non-linear denominators and, denominators with purely symbolic exponents, as well
-as non-rational functions of the variable are by default ignored.
-*)
 
 
 LinApart[x^p Log[x]/((1 + x)(2 + x)(3 + x)(1 + x^2)),x]
 
 
-(*
-When the option Factor set to True, the input expression is factorized term-
-by-term before the partial fraction decomposition; by default only over the integers.
-
-In order to avoid any unnecessary computation, the factorization only affects
-the variable dependent part.
-*)
-
-
 LinApart[1/((1 - a^2)(1 - x^2)),x,"Factor"->True]
-
-
-(*
-Factorization can be extended to allow for constants that are Gaussian integers.
-*)
 
 
 LinApart[1/((1 + x)(1 + x^2)),x,"Factor"->True,"GaussianIntegers"->True]
 %//ComplexExpand
 
 
-(*
-In case of fractional powers it factors out the appropriate order, 
-does the decomposition then multiplies it back.
-
-For example: LinApart[1/(1+x)/(2+x)^(1/2),x] -> Sqrt[2+x] LinApart[1/(1+x)/(2+x),x]
-*)
-
-
 LinApart[1/((1 + x)(2 + x)^(1/2) (3 + x)^(1/3+p)),x]
-
-
-(*
-The same rational function structure can appear many times in the input with different
-coefficients. In such cases, rather than applying the partial decomposition routine on
-individual terms, one ought to gather every unique x-dependent structure, then apply 
-the partial fraction decomposition, thus reducing the number of computation.
-
-The option PreCollect does exactly this.
-*)
 
 
 expr = 2/((1 + x)(2 + x)) + 1/((1 - a)(1 + x)(2 + x))+
@@ -94,20 +45,6 @@ expr = 2/((1 + x)(2 + x)) + 1/((1 - a)(1 + x)(2 + x))+
   b/((1 + a)(1 + x)(2 + x)) - (a b)/((1 + a)(1 + x)(2 + x));
 
 LinApart[expr, x, "PreCollect" -> True]
-
-
-(*
-When the PreCollect option is set to True, one may further specify the option
-ApplyAfterPreCollect, which takes a pure function and applies it to the x-independent
-coefficients. This can lead to cancellation further reducing the number 
-of calculation.
-
-The choice of the appropriate ApplyAfterPreCollect set-ting is highly 
-context-dependent. Obvious choices would be: Factor, Simplify or Together.
-
-Sometimes these can take too much time and some simplier gathering by denominators
-would be also sufficient. For this we defined the GatherByDenominator function.
-*)
 
 
 expr = 2/((1 + x)(2 + x)) + 1/((1 - a)(1 + x)(2 + x))+
@@ -124,15 +61,6 @@ expr = 2/((1 + x)(2 + x)) + 1/((1 - a)(1 + x)(2 + x))+
   
 LinApart[expr, x, "PreCollect" -> True,
 "ApplyAfterPreCollect" -> GatherByDenominator]
-
-
-(*
-An example which emerged during our phase space integrals, when we tried to 
-sett up a local subtraction scheme beyond next-to-leading order.
-
-Based on our benchmarks we estimated to decompose this integral with Apart
-in about 31 years (10^9s). Our algorithm does it under a second.
-*)
 
 
 expr=1/((\[Minus]4 + y)(1 \[Minus] y + xb y)(2 \[Minus] y + xb y)(4 \[Minus] y + xb y)(1 \[Minus] xa \[Minus] y + xb y)^3
@@ -331,19 +259,12 @@ tmpLinApartGatherGatherByDenominator/numOriginal/.numRules//N
 
 
 (* ::Subsection::Closed:: *)
-(*Complicated*)
+(*Fractions*)
 
 
 (*
-This example also surfaced during our calculation.
-
-In the first subsection we separeted the structures for demostration purposes.
-In the second we provide the whole expression unfiltered.
+These are some fraction which surfaced during our calculations.
 *)
-
-
-(* ::Subsubsection::Closed:: *)
-(*Structures*)
 
 
 (*
@@ -380,40 +301,3 @@ Monitor[
 
 timingStructuresLinApart[[All,1]]
 timingStructuresApart[[All,1]]
-
-
-(* ::Subsubsection::Closed:: *)
-(*Expression*)
-
-
-(*
-This subsection requires a great amount of time and RAM.
-*)
-
-
-exampleComplicated//Length
-vars=exampleComplicated//Variables
-
-
-numRules=Table[vars[[i]]->1/i/10,{i,Length[vars]}]
-
-
-(* ::Input::Initialization:: *)
-tmpGather=exampleComplicated//GatherByDependency[#,x2]&;//AbsoluteTiming
-tmpGatherGatherByDenominator=exampleComplicated//GatherByDependency[#,x2,GatherByDenominator]&;//AbsoluteTiming
-
-numOriginal=exampleComplicated/.numRules//N;
-
-tmpGather/numOriginal/.numRules//N
-tmpGatherFactor/numOriginal/.numRules//N
-tmpGatherGatherByDenominator/numOriginal/.numRules//N
-
-
-tmpLinApartGatherFactor=exampleSimple//LinApart[#,x1,"PreCollect"->True,"ApplyAfterPreCollect"->Factor]&;//MaxMemoryUsed//AbsoluteTiming
-tmpLinApartGatherGatherByDenominator=exampleSimple//LinApart[#,x1,"PreCollect"->True,"ApplyAfterPreCollect"->GatherByDenominator]&;//MaxMemoryUsed//AbsoluteTiming
-
-
-numOriginal=exampleSimple/.numRules//N;
-
-tmpLinApartGatherFactor/numOriginal/.numRules//N
-tmpLinApartGatherGatherByDenominator/numOriginal/.numRules//N
