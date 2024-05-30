@@ -139,9 +139,6 @@ of calculation.
 
 The choice of the appropriate ApplyAfterPreCollect set-ting is highly 
 context-dependent. Obvious choices would be: Factor, Simplify or Together.
-
-Sometimes these can take too much time and some simplier gathering by denominators
-would be also sufficient. For this we defined the GatherByDenominator function.
 *)
 
 
@@ -155,7 +152,7 @@ expr//LinApart[#,x,"PreCollect"->True]&//Length//AbsoluteTiming
 
 
 (* ::Subsection::Closed:: *)
-(*Simple*)
+(*Simple example*)
 
 
 (*
@@ -176,86 +173,22 @@ numRules=Table[vars[[i]]->1/i/10,{i,Length[vars]}]
 
 
 (*
-The gathering is done by a function called GatherByDependency. It can be called
-with 4 arguments:
-
-GatherByDependency[
-	expression,
-	symbol or head or any expression which FreeQ can take,
-	function to be applied to the coefficients,
-	function to be applied to the dependent parts
-	].
-	
-The last two argument has None as default value. For example if the users wants to
-apply a function on the depedent part:
-
-GatherByDependency[expr, x, None, Apart[#,x]& ]
-
-or
-
-GatherByDependency[expr, ep, None, Series[#,{ep,0,-2}]& ].
-*)
-
-
-(*
-One can see that different simplifing attempts have different result. 
-Factor does takes longer completly simplifies the coefficients leading to less
-structure, while GatherByDenominator is faster but the number of variable dependent
-terms is greater.
-
-One important note, the function defined in the third argument will act on 
-every coefficient. The fully variable indepent terms together build up the 
-coefficient of the trivial structure (1), thus the function will be applied on that
-as well.
-*)
-
-
-(* ::Input::Initialization:: *)
-tmpGather=exampleSimple//GatherByDependency[#,x1]&;//AbsoluteTiming
-tmpGatherFactor=exampleSimple//GatherByDependency[#,x1,Factor]&;//AbsoluteTiming
-tmpGatherGatherByDenominator=exampleSimple//GatherByDependency[#,x1,GatherByDenominator]&;//AbsoluteTiming
-
-numOriginal=exampleSimple/.numRules//N;
-
-tmpGather/numOriginal/.numRules//N
-tmpGatherFactor/numOriginal/.numRules//N
-tmpGatherGatherByDenominator/numOriginal/.numRules//N
-
-
-tmpGather//Select[#,FreeQ[#,x1]&]&//Length
-tmpGatherFactor//Select[#,FreeQ[#,x1]&]&//Length
-tmpGatherGatherByDenominator//Select[#,FreeQ[#,x1]&]&//Length
-
-
-(*
 Here one can see the timings with different partial fraction decomposition 
 strategies.
-
-One can decduce that colelction is essential in every case, even with a fast algorithm
-like LinApart.
 *)
 
 
 (* ::Input::Initialization:: *)
 tmpApart=exampleSimple//Apart[#,x1]&;//MaxMemoryUsed//AbsoluteTiming
-tmpApartGather=exampleSimple//GatherByDependency[#,x1,Factor, Apart[#,x1]&]&;//MaxMemoryUsed//AbsoluteTiming
 
 
-tmpLinApart=exampleSimple//LinApart[#,x1]&;//MaxMemoryUsed//AbsoluteTiming
-
-tmpLinApartGather=exampleSimple//LinApart[#,x1,"PreCollect"->True]&;//MaxMemoryUsed//AbsoluteTiming
-tmpLinApartGatherFactor=exampleSimple//LinApart[#,x1,"PreCollect"->True,"ApplyAfterPreCollect"->Factor]&;//MaxMemoryUsed//AbsoluteTiming
-tmpLinApartGatherGatherByDenominator=exampleSimple//LinApart[#,x1,"PreCollect"->True,"ApplyAfterPreCollect"->GatherByDenominator]&;//MaxMemoryUsed//AbsoluteTiming
+tmpLinApart=exampleSimple//LinApart[#,x1,"PreCollect"->True,"ApplyAfterPreCollect"->Factor]&;//MaxMemoryUsed//AbsoluteTiming
 
 
 numOriginal=exampleSimple/.numRules//N;
 
 tmpApart/numOriginal/.numRules//N
-tmpApartGather/numOriginal/.numRules//N
 tmpLinApart/numOriginal/.numRules//N
-tmpLinApartGather/numOriginal/.numRules//N
-tmpLinApartGatherFactor/numOriginal/.numRules//N
-tmpLinApartGatherGatherByDenominator/numOriginal/.numRules//N
 
 
 (* ::Subsection::Closed:: *)
@@ -264,13 +197,9 @@ tmpLinApartGatherGatherByDenominator/numOriginal/.numRules//N
 
 (*
 These are some fraction which surfaced during our calculations.
-*)
 
-
-(*
-Here we can really see the power of LinApart by just running this subsection.
-One can increase the TimeConstrained maximum time and see for themself 
-the difference even in seemingly simple examples.
+One can increase the TimeConstrained's maximum time and see 
+the difference between Apart's and LinApart's runtime for seemingly simple examples.
 *)
 
 
