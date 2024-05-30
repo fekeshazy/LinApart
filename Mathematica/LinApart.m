@@ -37,11 +37,10 @@ Print[
 		(*
 		The Exponent function only gives the highest order of an expression. 
 		I needed the exponent of each multiplicative term to determine the multiplicites of the denominators.
-		Thus it is not a general function, but enough.
 		*)
 		
 		(*
-		-If the expression is free of the variable give 0.
+		-If the expression is free of the variable give back the expression itself.
 		-If we have the desired structure give the expression and its power.
 		
 		The constant before the structure is not needed.
@@ -58,7 +57,7 @@ GetExponent[a_. expr_^n_.,var_]:={expr,n}/;!FreeQ[expr,var]
 		it also factors the terms as well. Which means if we have an expression like: 
 			C1*den[a1]C2 den[a2]*den[a3]+C1*den[a1]*den[a2]*den[a4],
 		it will give
-			den[a1] den[a2] (C1 den[a3]+ C1 den[a4).
+			den[a1] den[a2] (C1 den[a3]+ C1 den[a4)).
 		It also ignores functions which depend on x. Example:
 			na+nb x + x G[x]+ 2 na nb x + na^2x G[x]+x^2+x^2G[x]//Collect[#,x]&.
 		
@@ -71,11 +70,10 @@ GetExponent[a_. expr_^n_.,var_]:={expr,n}/;!FreeQ[expr,var]
 		*)
 			
 		(*
-		This function separates the dependent part of an expression. This only works on single expression! Thus
-		expression without any addition in the numberator and expression, which head is not Plus!
+		This function separates the dependent part of an expression. This only works on single expression!
 		
 		The first 4 rules are for the special cases, when Select cannot be used. Like when:
-			1. the expression is only term;
+			1. the expression has only one mulitplicative term (e.g. a, a[1] etc);
 			2. the expression is a fraction, with one term in the numerator and one in the denominator. 
 		*)
 
@@ -109,22 +107,24 @@ tmp
 
 		(*
 		This function takes any expression and gathers the terms with the same unique structure, 
-		which depends on the given variable. The variable can be anything, which FreeQ recognizes.
+		which depends on the given variable. The variable can be anything what is regonized by FreeQ.
 		
 		The first argument is the expression.
 		The second argument is the variable.
-		The optional third argument is a function, which is going to be applied on the independent terms. 
-		The default is Factor.
+		The optional third argument is a function, which is going to be applied on the independent part. 
+		The optional fourth argument is a function, which is going to be applied on the dependent part. 
+		The default is None for both.
 		*)
 		
 		(*
 		If the expression is free of the variable it gives back the expression. If not, then it
-			1. expands;
+			1. expands it only in the varibale(!);
 			2. separates the dependent and independent part of each additive term;
 			3. gathers by the dependent part;
 			4. adds together all of the independent parts for each structure.
+			5. applies give function on the terms.
 			
-		The bootleneck might be Expand, cuz' it is a really slow funtion in Wolfram Mathematica.
+		The bootleneck might be Expand, because it is a really slow funtion in Wolfram Mathematica.
 		*)
 		
 ClearAll[GatherByDependency]
@@ -158,14 +158,16 @@ tmp=expr
 
 (* ::Input::Initialization:: *)
 		(*
-		When working with fraction Mathematica cannot immediately recognize simplifications. Take for example:
-		na/(1-x)-(na+nb)/(1-x)
-	Thus one has to apply a function, which helps Mathematica regonize the same terms. This can be anything,
-		like Expand, Factor, Together, Simplify, etc. Although these can be time consuming depending on the
-		expression.
+		When working with fractions Mathematica cannot immediately recognize simplifications. Take for example:
 
-		GatherByDenominator, gathers terms by their denominator and expands their numerator, thus canceling
-		some of the terms. Though it provides only a patrial cancelation.
+		na/(1-x)-(na+nb)/(1-x)
+
+		Thus one has to apply a function, which helps Mathematica regonize the same additive terms.
+	  This can be anything, like Expand, Factor, Together, Simplify, etc. 
+	  Although these can be time consuming depending on the expression.
+
+		GatherByDenominator gathers terms by their denominator and expands their numerator, thus canceling
+		some of the terms; though it provides only a patrial cancelation.
 		*)
 
 ClearAll[GatherByDenominator];
@@ -186,14 +188,8 @@ GatherByDenominator[expr_]:=expr
 
 
 		(*
-		This function is basically the implementation of Lemma 2 from the article. It does the polynomial division 
-		in the case, when we have the fraction x^m/((x-r)^n).
-		*)
-		
-		(*
-		This is inefficient cuz' we only need basically one structure but now 
-		we use it on every term and the term number can be really huge!
-		And of course this is a sum in Mathematica...
+		This function is basically the implementation of Eq. 15 from the article. It does the polynomial division 
+		in the case for fractions of the type x^m/((x-r)^n), when m and n are integers.
 		*)
 
 ClearAll[ReplaceRemainedStructure]
@@ -239,11 +235,11 @@ ReplaceRemainedStructure[var_,expr_,1]:=expr
 
 (* ::Input::Initialization:: *)
 		(*
-		There can be cases where sme denominators have non-number, complex or rational power. We want to
-		factor those out since the formula derived in the article (....) cannot deal with them.
+		There can be cases, where some denominators have non-number, complex or rational power. We want to
+		factor these out, since the powers in the formula are restricted to integers.
 
 		Unfortunatelly, these powers can be added to a rational or integer power, which can further
-		complicate things. The most problematic caseis the complex powers. They are hard to separate and
+		complicate things. The most problematic case is the complex powers. They are hard to separate and
 		even the Denominator function does not recognize them; Mathematica treats them as numerators.
 		*)
 
@@ -276,10 +272,10 @@ tmp=Plus@@Cases[tmp, n_Rational|n_Integer+_.:>n,1]
 		(*
 		This is the main function, which separates the unwanted multiplicate variable-dependent terms.
 
-	 First it gets rid of the unwanted powers like complex, rational or symbolic. Then factors put the
+	    First it gets rid of the unwanted powers like complex, rational or symbolic. Then factors out the
 		appropriate power from the rationals and stores them in the dummy power function TmpPower.
 
-	  Then picks out the terms linear in the variable and divide the original expression by it, to
+	    Then, it picks out the terms linear in the variable and divide the original expression by it, to
 		aquire the ignored part.
 		*)
 Clear[SeparateFrac]
@@ -417,7 +413,7 @@ LinApart[expr_, var_, options : OptionsPattern[]]:=PreProccesorLinApart[expr, va
 LinApart[arg___]:=Null/;CheckArguments[LinApart[arg],2]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Preprocessor*)
 
 
@@ -430,10 +426,10 @@ LinApart[arg___]:=Null/;CheckArguments[LinApart[arg],2]
 		
 	The stages are the following:
 		0. stage:  
-			-otional term-by-term factoring and or gatering by unique variable dependent structure.
+			-optional term-by-term factoring and or gatering by unique variable dependent structure.
 			
 		1. stage: 
-			-if the expression is a sum apllies itself on every term
+			-if the expression is a sum applies itself on every term
 			-handels some special cases, when decomposition is not needed
 			-separates non-variable dependent multiplicative terms
 			-handels special cases in the numerator, e.g. complex/real/non-number powers
@@ -443,7 +439,6 @@ LinApart[arg___]:=Null/;CheckArguments[LinApart[arg],2]
 			-manipulate the denominator arguments (normalization, collecting in the variable)
 			-handels special cases in the denominator, e.g. no root/complex/real/rational/non-number powers
 			and non-linear terms
-			-writes out warning messages
 			-separates non-variable dependent multiplicative terms coming from the normalization
 		
 		(Obsolute but left here for future possible extensions.) 
@@ -494,15 +489,12 @@ a,b,n,pow
 	During the 1. stage: 
 		-applies itself on every term in a sum, if any of the terms
 			o are indepedent of the variable
-			o are a ploynomials
+			o are ploynomials
 			o has no denominator or the denominator is independent of the variable
 		 it gives back the expression;
-		-the rest deals with the numerator:
-			-removes non-variable dependent parts
-			-selects the multiplicative terms with complex terms, gets out the real power
-			-selects the multiplicative terms with rational terms
-			-selects the multiplicative terms, which are not polynomial in var
-			-selects the multiplicative terms with symbols, gets out the number power
+		-removes non-variable dependent parts
+		-selects the multiplicative terms with complex/real/non-number powers
+		-factors out the appropiate power from terms with rational powers
 	*)
 PreProccesorLinApart[expr_Plus,var_,options : OptionsPattern[],1]:=PreProccesorLinApart[#,var,options,1]&/@expr
 PreProccesorLinApart[expr_,var_,options : OptionsPattern[],1]:=expr/;FreeQ[expr,var]
@@ -534,11 +526,8 @@ a,b,tmpList1,tmpList2
 	(*
 	During the 2. stage:
 		-if the expression in non-factorizeable or just a polynomial it will show up in this step, first 2 rules;
-		-if one the denominator has no root, it will give a dummy one;
+		-if one a denominator has no root, it will give a dummy one;
 		-removes every numerator, which is not a monomial in the variable;
-		-it checks whether the numerator's or one of the denominators' order a rational or not,
-			o if yes, factor out the appropiate power,
-			o if no, nothing happens;
 		-does the normalization of the denominators;
 		-removes constants coming from the renormalization;
 		-it checks whether the numerator's order is greater than the denominator's order-1,
@@ -636,21 +625,12 @@ m,den,const,a,pow
 	const=den/.var->0;
 	m=-tmp[[All,2]];
 	
-	(*
-	Print["m: ",m];	
-	Print["tmp: ",tmp];	
-	Print["den: ",den];
-	Print["const: ",const];
-	Print["tmp1a: ",tmp1a];
-	Print["tmp1b: ",tmp1b];
-	*)
-	
 	tmp=Sum[
 		Sum[
 		
 			(*
-			The Expand here is a serious bottleneck if applied to the whole formula!!
-			Thus I opted for Distribute, which do not gives us a fully expanded form but is something.
+			The Expand here is a serious bottleneck if applied to the whole formula!
+			Thus, I opted for Distribute, which do not gives us a fully expanded form but is something.
 			*)
 				If[FreeQ[keepForDivision,var],
 					
@@ -683,32 +663,13 @@ m,den,const,a,pow
 	{i,1,Length[tmp1b]}];	
 	
 	(*
-	This might be a bootleneck if the expression is huge. Might me be more wise to rewrite it with set.
-	But then I must pay attention to the variable name, cuz I also must delete its definition afterwards.
+	This might be a bootleneck if the expression is huge. Can be rewritten with set.
 	*)
 	tmp/.LinAparta[0]->0
 ]
 
 
-	(*Usegae message to be written out by ?LinApart and the text of warning & error messages.*)
-
-LinApart::usage = 
-"LinApart[expression, variable_Symbol] 
-LinApart[expression, variable_Symbol, Options] 
-The function gives the partrial fraction decomposition of fractions with linear denominators in the choosen variable; the variable must be a symbol. 
-With the option: 
-	-Factor->True/False the users can decide, whether they want to factor each additive term in the expression; the default value is False.
-	-Collect->True/False the user can decide, whether they want to gather by every unique structure in the expression.
-";
-
-LinApartError::varNotSymbol="The variable `1` is not a symbol.";
-LinApartError::wrongOption="The option `1` not recognized.";
-LinApartError::wrongNumberOfArguments="The function needs two arguments; it was called with `1`.";
-
-LinApartWarning::nonLinearExpression="The expression is non-linear `1`.";
-
-
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Text of messages*)
 
 
