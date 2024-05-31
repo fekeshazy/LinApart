@@ -5,13 +5,13 @@
 
 
 (*
-This file contains the LinApart package, based on the article ....... .
+This file contains the LinApart package, based on the article arXiv.2405.20130 .
 
 It has four main sections.
 	1. Helper functions: it contains all of smaller functions used in the main routine.
 	2. LinApart front: it contains the definition fo the front function and input error handling.
 	3. PreProcessor: it conaint the function called PreProcessor, which manipulates the input so 
-	the formula (eq ....) presented in the article can be applied. 
+	the formula (eq 11) presented in the article can be applied. 
 	4. Text of messages: it contains the definition of the error/warning messages and the 
 	short useage summary.
 *)
