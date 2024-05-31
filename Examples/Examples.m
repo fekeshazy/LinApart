@@ -7,7 +7,7 @@
 SetDirectory[NotebookDirectory[]]
 
 
-Import["LinApart.m"];
+Import["..\\Mathematica\\LinApart.m"];
 
 
 exampleSimple=Import["exampleSimple.mx"];
