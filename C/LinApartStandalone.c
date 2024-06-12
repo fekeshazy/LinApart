@@ -13,15 +13,20 @@ static void usage(void)
 
 int main(int argc, char *argv[]) {
 	int quiet = 0;
+	if (argc < 2) {
+		usage();
+		return 1;
+	}
 	for (int i = 1; i < argc; i++){
 		if (!strcmp(argv[i], "-v")) { /* prints version information */
 			puts("LinApart-"VERSION);
+			return 0;
 		}
 		else if (!strcmp(argv[i], "-q")) {
 			//N = atoi(argv[++i]);
 			quiet = 1;
 		}
-		else if (argc < 3) {
+		if (argc < 3) {
 			usage();
 			return 1;
 		}
