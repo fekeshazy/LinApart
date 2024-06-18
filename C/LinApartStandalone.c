@@ -4,10 +4,12 @@
 
 static void usage(void)
 {
-    fputs("Usage: LinApart <exponents> <roots>\n", stderr);
+    fputs("Usage: LinApart <exponents> <roots> [-q] [-o OutputFileName]\n", stderr);
     fputs("  <exponents>: Comma-separated list of exponents (e.g., \"1,2,3,4\")\n", stderr);
     fputs("  <roots>: Comma-separated list of roots (e.g., \"a,b,c,d\")\n", stderr);
     fputs("  exponents should contain 1 element more than roots (the exponent of the monomial in the numerator)\n", stderr);
+    fputs("  -q suppresses the standard output\n", stderr);
+    fputs("  -o alters the file name of the output file\n", stderr);
     fputs("Example: LinApart \"1,2,3\" \"a1,a2\"\n", stderr);
 }
 
@@ -17,6 +19,7 @@ int main(int argc, char *argv[]) {
 		usage();
 		return 1;
 	}
+	char *fname = "LA_result.out";
 	for (int i = 1; i < argc; i++){
 		if (!strcmp(argv[i], "-v")) { /* prints version information */
 			puts("LinApart-"VERSION);
@@ -25,6 +28,9 @@ int main(int argc, char *argv[]) {
 		else if (!strcmp(argv[i], "-q")) {
 			//N = atoi(argv[++i]);
 			quiet = 1;
+		}
+		else if (!strcmp(argv[i], "-o")) {
+			fname = argv[++i];
 		}
 		if (argc < 3) {
 			usage();
@@ -73,14 +79,17 @@ int main(int argc, char *argv[]) {
 	// Adjust N to match the original code
 	N = N - 2;
 
-	// Defining data types
+	// Open the output file
+	remove(fname);
+	FILE *fptr = fopen(fname, "a");
 
-	run(N, a, m);
+	//Run
+	run(fptr, N, a, m);
 
 	if(quiet)
 		return 0;
 
-	FILE *fptr = fopen("result.out", "rb");
+	fptr = fopen(fname, "rb");
 
 	long length;
 	char* buffer = 0;

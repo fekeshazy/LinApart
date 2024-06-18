@@ -18,6 +18,6 @@ void binomial(mpz_t *result, int n, int m);
 void ReplaceRemainedStructure(int n, int m, int i, char **a, FILE *fptr, char *prod);
 void genTerms(int i, int *partition, int *m, int n, int mi, char **a, int remainedNumPower, FILE *fptr, char *prod);
 void generatePartitions(int ii, int nOrig, int n, int mi, char **a, int *partition, int *m, int index, int remainedNumPower, FILE *fptr, char *prod);
-void run(int N, char **a, int *m);
+void run(FILE *fptr, int N, char **a, int *m);
 
 #endif

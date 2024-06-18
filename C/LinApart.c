@@ -271,9 +271,7 @@ void generatePartitions(int ii, int nOrig, int n, int mi, char **a, int *partiti
 	}
 }
 
-void run(int N, char **a, int *m){
-	remove("result.out");
-	FILE *fptr = fopen("result.out", "a");
+void run(FILE *fptr, int N, char **a, int *m){
 	char *prod = (char*)calloc(BUF_SIZE, sizeof(char));
 	if (prod == NULL) {
 		fprintf(stderr, "Error: calloc failed to allocate memory for prod.\n");
