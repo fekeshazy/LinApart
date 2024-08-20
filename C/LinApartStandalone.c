@@ -76,6 +76,11 @@ int main(int argc, char *argv[]) {
 		token = strtok(NULL, ",");
 	}
 
+	if( N-a_count!= 1){
+		usage();
+		return 1;
+	}
+
 	// Adjust N to match the original code
 	N = N - 2;
 
