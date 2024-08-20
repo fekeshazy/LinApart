@@ -53,7 +53,6 @@ void fact(mpz_t *result, long long n) {
 char* convert_to_string(mpz_t value) {
 	// Get the length of the result string
 	size_t result_len;
-	mp_exp_t exp;
 
 	char *result_str = mpz_get_str(NULL, 10, value);
 	if (result_str == NULL) {
@@ -101,7 +100,6 @@ void ReplaceRemainedStructure(int n, int m, int i, char **a, FILE *fptr, char *p
 
 	// Definition of temporary variables used in the sums.
 	int tmpMod;
-	int tmpBinomial;
 
 	buf(0,fptr,prod,"(");
 	// First sum
