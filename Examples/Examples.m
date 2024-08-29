@@ -1,26 +1,33 @@
 (* ::Package:: *)
 
-(* ::Section::Closed:: *)
+(* ::Section:: *)
 (*Load*)
 
 
-SetDirectory[NotebookDirectory[]]
+(*
+The paths to the routine and examples are defined here.
+Please update the paths below as needed.
+*)
 
 
-Import["..\\Mathematica\\LinApart.m"];
+$LinApartPath="/userpath/LinApart/Mathematica/"
+$LinApartExamplesPath="/userpath/LinApart/Examples/"
 
 
-exampleSimple=Import["exampleSimple.mx"];
+Import[$LinApartPath <> "LinApart.m"];
 
 
-structures=Import["PF_structures"]//ToExpression;
+exampleSimple=Import[$LinApartExamplesPath <> "exampleSimple.mx"];
+
+
+structures=Import[$LinApartExamplesPath <> "PF_structures"]//ToExpression;
 
 
 (* ::Section:: *)
 (*Test*)
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Examples from the article*)
 
 
@@ -76,7 +83,7 @@ expr=1/((\[Minus]4 + y)(1 \[Minus] y + xb y)(2 \[Minus] y + xb y)(4 \[Minus] y +
 res=LinApart[expr,y];//AbsoluteTiming
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*More basic examples*)
 
 
@@ -151,7 +158,7 @@ expr//LinApart[#,x]&//Length//AbsoluteTiming
 expr//LinApart[#,x,"PreCollect"->True]&//Length//AbsoluteTiming
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Simple example*)
 
 
@@ -191,7 +198,7 @@ tmpApart/numOriginal/.numRules//N
 tmpLinApart/numOriginal/.numRules//N
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Fractions*)
 
 
@@ -230,3 +237,6 @@ Monitor[
 
 timingStructuresLinApart[[All,1]]
 timingStructuresApart[[All,1]]
+
+
+
