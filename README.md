@@ -1,6 +1,6 @@
 # LinApart
 
-The LinApart routine can be used for efficiently performing the univariate partial fraction decomposition of large symbolic expressions, when the denominators are fully factorized. The routine is described in the following paper: [arXiv:2405.20130](https://arxiv.org/abs/2405.20130).
+The LinApart routine can be used for efficiently performing the univariate partial fraction decomposition of large symbolic expressions. The routine is described in the following paper: [arXiv:2405.20130](https://arxiv.org/abs/2405.20130) and ... .
 
 Wolfram Mathematica and C language implementations of the routine are provided. The latter includes both a standalone version and a library suitable for linking with other software (e.g. FORM).
 
