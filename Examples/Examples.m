@@ -1,13 +1,13 @@
 (* ::Package:: *)
 
-(* ::Section::Closed:: *)
+(* ::Section:: *)
 (*Load*)
 
 
 SetDirectory[NotebookDirectory[]]
 
 
-Import["..\\Mathematica\\LinApart.m"];
+Import["..//Mathematica//LinApart.m"];
 
 
 exampleSimple=Import["exampleSimple.mx"];
@@ -17,11 +17,11 @@ structures=Import["PF_structures"]//ToExpression;
 
 
 (* ::Section:: *)
-(*Test*)
+(*Tests*)
 
 
 (* ::Subsection::Closed:: *)
-(*Examples from the article*)
+(*Examples from the first article*)
 
 
 LinApart[1/((1 + x)(2 + x)(3 + x)),x]
@@ -77,7 +77,7 @@ res=LinApart[expr,y];//AbsoluteTiming
 
 
 (* ::Subsection::Closed:: *)
-(*More basic examples*)
+(*More basic linear examples*)
 
 
 (*
@@ -152,7 +152,173 @@ expr//LinApart[#,x,"PreCollect"->True]&//Length//AbsoluteTiming
 
 
 (* ::Subsection::Closed:: *)
-(*Simple example*)
+(*Examples from the first article*)
+
+
+(*
+The example done by hand in the article.
+*)
+
+
+expr=x^10/(x^2+x+1)^2/(x^2-x+1)^2;
+
+tmpApart=expr//LinApart[#,x,"Method"->"EquationSystem"]&;//AbsoluteTiming
+tmpEuclidean=expr//LinApart[#,x,"Method"->"Euclidean"]&;//AbsoluteTiming
+tmpLinApart=expr//LinApart[#,x,"Method"->"ExtendedLaurentSeries"]&;//AbsoluteTiming
+
+expr-tmpApart//Together
+expr-tmpEuclidean//Together
+expr-tmpLinApart//Together
+
+
+(*
+The equation-based method has an advantage when only a single symbol is 
+present, but as soon as additional symbols enter the coefficients this 
+advantage diminishes.
+*)
+
+
+expr=x^2/Product[
+				Sum[
+						RandomInteger[{1,10^5}] x^j,
+					{j,0,3}
+					]^2,
+			{i,1,5}
+			];
+			
+expr//LinApart[#,x]&;//AbsoluteTiming
+expr//Apart[#,x]&;//AbsoluteTiming
+
+
+expr=x^2/Product[
+				Sum[
+					(RandomInteger[{1,10^5}] y +
+					RandomInteger[{1,10^5}] a) x^j,
+				{j,0,3}
+				]^2,
+			{i,1,5}
+			];
+			
+expr//LinApart[#,x]&;//AbsoluteTiming
+expr//Apart[#,x]&;//AbsoluteTiming
+
+
+(* ::Subsection::Closed:: *)
+(*More basic non-linear examples*)
+
+
+expr=1/(-3 x-a1)/(5x^2+b01 x -b00)
+
+tmpApart=expr//LinApart[#,x,"Method"->"EquationSystem"]&;//AbsoluteTiming
+tmpEuclidean=expr//LinApart[#,x,"Method"->"Euclidean"]&;//AbsoluteTiming
+tmpLinApart=expr//LinApart[#,x,"Method"->"ExtendedLaurentSeries"]&;//AbsoluteTiming
+
+expr-tmpApart//CheckNumericallyIfZero
+expr-tmpEuclidean//CheckNumericallyIfZero
+expr-tmpLinApart//CheckNumericallyIfZero
+
+
+expr=1/(x-a1)/(x^2-2/3 y x+ 1)^2/(x^3+ x^2-b21 x+ b20)^2
+
+tmpApart=expr//LinApart[#,x,"Method"->"EquationSystem"]&;//AbsoluteTiming
+tmpEuclidean=expr//LinApart[#,x,"Method"->"Euclidean"]&;//AbsoluteTiming
+tmpLinApart=expr//LinApart[#,x,"Method"->"ExtendedLaurentSeries"]&;//AbsoluteTiming
+
+expr-tmpApart//CheckNumericallyIfZero
+expr-tmpEuclidean//CheckNumericallyIfZero
+expr-tmpLinApart//CheckNumericallyIfZero
+
+
+(* ::Input::Initialization:: *)
+expr=1/(x-a1)/(x^2-2 x+ y+10)^2/(x^2-Exp[y] x+ 12/3)
+
+tmpApart=expr//LinApart[#,x,"Method"->"EquationSystem"]&;//AbsoluteTiming
+tmpEuclidean=expr//LinApart[#,x,"Method"->"Euclidean"]&;//AbsoluteTiming
+tmpLinApart=expr//LinApart[#,x,"Method"->"ExtendedLaurentSeries"]&;//AbsoluteTiming
+
+expr-tmpApart//Together
+expr-tmpEuclidean//Together
+expr-tmpLinApart//Together
+
+
+expr=x^2/Product[ Sum[b[i,j] x^j, {j,0,2}]^2, {i,1,4}]
+
+tmpEuclidean=expr//LinApart[#,x,"Method"->"Euclidean"]&;//AbsoluteTiming
+tmpLinApart=expr//LinApart[#,x,"Method"->"ExtendedLaurentSeries"]&;//AbsoluteTiming
+
+
+(* ::Subsection::Closed:: *)
+(*Examples for parallelization from the article*)
+
+
+CloseKernels[];
+LaunchKernels[4];
+DistributeDefinitions[LinApart]
+
+
+(*
+For many denominators with simple poles, parallelization 
+in Mathematica provides essentially no speed-up.
+*)
+
+
+expr=x^2/Product[ Sum[b[i,j] x^j, {j,0,1}], {i,1,30}];
+
+expr//LinApart[#,x]&;//AbsoluteTiming
+expr//LinApart[#,x,"Parallel"->{True,4,NotebookDirectory[]}]&;//
+		AbsoluteTiming
+
+
+(*
+However, in the high-multiplicity limit, runtime can indeed be reduced.
+*)
+
+
+expr=x^2/Product[(x-b[i,1])^20, {i,1,15}];
+
+expr//LinApart[#,x]&;//AbsoluteTiming
+expr//LinApart[#,x,"Parallel"->{True,4,NotebookDirectory[]}]&;//
+		AbsoluteTiming
+
+
+(*
+In the general case, the situation is similar.
+*)
+
+
+expr=x^2/Product[Sum[b[i,j] x^j, {j,0,2}]^2, {i,1,8}];
+
+expr//LinApart[#,x]&;//AbsoluteTiming
+expr//LinApart[#,x,"Parallel"->{True,4,NotebookDirectory[]}]&;//
+		AbsoluteTiming
+
+
+expr=x^2/Product[Sum[b[i,j] x^j, {j,0,2}]^4, {i,1,5}];
+expr//LinApart[#,x]&;//AbsoluteTiming
+expr//LinApart[#,x,"Parallel"->{True,4,NotebookDirectory[]}]&;//
+		AbsoluteTiming
+
+
+(*
+The poorest performance occurs when the degrees of the denominators 
+are increased.
+*)
+
+
+expr=x^2/Product[Sum[b[i,j] x^j, {j,0,2}]^2, {i,1,7}];
+expr//LinApart[#,x]&;//AbsoluteTiming
+expr//LinApart[#,x,"Parallel"->{True,4,NotebookDirectory[]}]&;//
+		AbsoluteTiming
+
+
+expr=x^2/Product[Sum[b[i,j] x^j, {j,0,3}]^2, {i,1,5}];
+expr//LinApart[#,x]&;//AbsoluteTiming
+expr//LinApart[#,x,"Parallel"->{True,4,NotebookDirectory[]}]&;//
+		AbsoluteTiming
+
+
+(* ::Subsection::Closed:: *)
+(*Simple linear example*)
 
 
 (*
@@ -192,7 +358,7 @@ tmpLinApart/numOriginal/.numRules//N
 
 
 (* ::Subsection::Closed:: *)
-(*Fractions*)
+(*Linear fractions*)
 
 
 (*
