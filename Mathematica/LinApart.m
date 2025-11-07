@@ -516,7 +516,7 @@ Block[
 ]
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*Polynomial reduction modulo a polynomial*)
 
 
@@ -1548,7 +1548,7 @@ Block[
 ]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Partial fraction function*)
 
 
@@ -1571,7 +1571,7 @@ m,den,const,a,pow,
 tmpPolynomialPart,
 tmpFractionedPart,
 
-startTime,tmpTime
+dummyIndex
 },
 	
 	tmp1a=Numerator[tmp];
@@ -1633,7 +1633,7 @@ startTime,tmpTime
 						OptionValue["Parallel"][[3]]
 					]//Flatten,
 					
-		Table[coeff*ignoreFrac*ResidueForLaurentSeries@@i,{i,tmpFractionedPart}]
+		Table[coeff*ignoreFrac*ResidueForLaurentSeries@@dummyIndex,{dummyIndex,tmpFractionedPart}]
 	]//Total)+tmpPolynomialPart
 	
 ]/;OptionValue["Method"]==="ExtendedLaurentSeries"
