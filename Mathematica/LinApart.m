@@ -1,11 +1,11 @@
 (* ::Package:: *)
 
 (* ::Section:: *)
-(*LinApart*)
+(*FastApart*)
 
 
 (*
-This file contains the LinApart package, based on the article arXiv.2405.20130 .
+This file contains the FastApart package, based on the articles arXiv.2405.20130 and ... .
 
 It has four main sections.
 	1. Helper functions: it contains all of smaller functions used in the main routine.
@@ -23,17 +23,19 @@ It has four main sections.
 
 Print[
 
-	"(****** LinApart 1.0 ******)"
+	"(****** LinApart 2.0 ******)"
 	
 ];
 
 
-(* ::Subsection::Closed:: *)
-(*Helper functions*)
+(* ::Subsection:: *)
+(*Helper functions for LinApart*)
 
 
-												(*Helper functions*)
-		
+(* ::Subsubsection::Closed:: *)
+(*GetExponent*)
+
+
 		(*
 		The Exponent function only gives the highest order of an expression. 
 		I needed the exponent of each multiplicative term to determine the multiplicites of the denominators.
@@ -48,112 +50,190 @@ Print[
 		
 ClearAll[GetExponent]
 
+GetExponent[list_List,var_Symbol]:=GetExponent[#,var]&/@list
 GetExponent[a_. expr_^n_.,var_]:={expr^n,1}/;FreeQ[expr,var]
 GetExponent[a_. expr_^n_.,var_]:={expr,n}/;!FreeQ[expr,var]
 
 
-		(*
-		The Collect function is very useful, but when one collects by head like expr//Collect[#, _den]& 
-		it also factors the terms as well. Which means if we have an expression like: 
-			C1*den[a1]C2 den[a2]*den[a3]+C1*den[a1]*den[a2]*den[a4],
-		it will give
-			den[a1] den[a2] (C1 den[a3]+ C1 den[a4)).
-		It also ignores functions which depend on x. Example:
-			na+nb x + x G[x]+ 2 na nb x + na^2x G[x]+x^2+x^2G[x]//Collect[#,x]&.
-		
-		However in most cases we need a result, where all of the terms are made out of two terms:
-			1. the first should be free of the variable, be it a Symbol or Head;
-			2. the second should be the unique dependent part.
-			
-		For this purpose I've written the GatherByDependency function, which has two separate helper function 
-		SeparateDependency and Dependent.
-		*)
-			
-		(*
-		This function separates the dependent part of an expression. This only works on single expression!
-		
-		The first 4 rules are for the special cases, when Select cannot be used. Like when:
-			1. the expression has only one mulitplicative term (e.g. a, a[1] etc);
-			2. the expression is a fraction, with one term in the numerator and one in the denominator. 
-		*)
+(* ::Subsubsection::Closed:: *)
+(*GatherByDependency*)
 
+
+(*
+        The Collect function is very useful, but when one collects by head like expr//Collect[#, _den]& it also factors
+        the terms as well. Which means if we have an expression like:
+                C1*den[a1]C2 den[a2]*den[a3]+C1*den[a1]*den[a2]*den[a4],
+        it will give
+                den[a1] den[a2] (C1 den[a3]+ C1 den[a4).
+        It also ignores functions which depend on x. Example:
+                na+nb x + x G[x]+ 2 na nb x + na^2x G[x]+x^2+x^2G[x]//Collect[#,x]&.
+
+        However in most cases we need a result, where all of the terms are made out of two terms:
+                1. the first should be free of the variable, be it a Symbol or Head;
+                2. the second should be the unique dependent part.
+
+        For this purpose I've written the GatherByDependency function, which has two separate helper function
+        SeparateDependency and Dependent.
+        *)
+
+                (*
+                This function separates the dependent part of an expression. This only works on single expression! Thus
+                expression without any addition in the numberator and expression, which head is not Plus!
+
+                The first 4 rules are for the special cases, when Select cannot be used. Like when:
+                        1. the expression is only term;
+                        2. the expression is a fraction, with one term in the numerator and one in the denominator.
+                *)
 ClearAll[SeparateDependency]
 
+                  (*The expression is a special case and is free of the variable.*)
+SeparateDependency[expr_,var_]:={expr,1}/;Head[expr]=!=Times&&FreeQ[expr,var]
 SeparateDependency[expr_,var_]:={expr,1}/;Length[expr]===0&&FreeQ[expr,var]
-SeparateDependency[expr_,var_]:={1,expr}/;Length[expr]===0&&!FreeQ[expr,var]
 SeparateDependency[expr_,var_]:={expr,1}/;Length[expr]===2&&Head[expr]===Power&&FreeQ[expr,var]
+
+                  (*The expression is a special case and is not free of the variable.*)
+SeparateDependency[expr_,var_]:={1,expr}/;Head[expr]=!=Times&&!FreeQ[expr,var]
+SeparateDependency[expr_,var_]:={1,expr}/;Length[expr]===0&&!FreeQ[expr,var]
 SeparateDependency[expr_,var_]:={1,expr}/;Length[expr]===2&&Head[expr]===Power&&!FreeQ[expr,var]
+
+                  (*The expression is a multiplication.*)
 SeparateDependency[expr_,var_]:=expr//{#//Select[#,FreeQ[#,var]&]&,#//Select[#,!FreeQ[#,var]&]&}&
 
-		(*
-		This function takes the expression, checks whether is it free of the variable or not. If it is not, makes
-		a list out of it. Then applies the SeparateDependency term by term. Can be used as a standalone function.
-		*)
-		
+
+
+                (*
+                This function takes the expression, checks whether is it free of the variable or not. If it is not, makes
+                a list out of it. Then applies the SeparateDependency term by term. Can be used as a standalone function.
+                *)
 ClearAll[Dependent]
 
+	(*If the expression is free of the variable give back the expression.*)
 Dependent[expr_,var_]:=expr/;FreeQ[expr,var]
-Dependent[expr_,var_]:=Block[
-{
-tmp
-},
 
-	tmp=expr;
-	tmp=tmp//Expand[#,var]&;
-	tmp=If[Head[tmp]===Plus,List@@tmp,{tmp}];
-	tmp=SeparateDependency[#,var]&/@tmp
+	(*
+		-expanding of expression,
+		-making it a list, adgecase, when we only have a multiplication not a sum
+		-separate the variable dependent terms.
+	*)
+Dependent[expr_,var_]:=Block[
+	{
+	tmp
+	},
+
+        tmp=expr;
+        tmp=tmp//Expand[#,var]&;
+        tmp=If[Head[tmp]===Plus,List@@tmp,{tmp}];
+        tmp=SeparateDependency[#,var]&/@tmp
 
 ]
 
-		(*
-		This function takes any expression and gathers the terms with the same unique structure, 
-		which depends on the given variable. The variable can be anything what is regonized by FreeQ.
-		
-		The first argument is the expression.
-		The second argument is the variable.
-		The optional third argument is a function, which is going to be applied on the independent part. 
-		The optional fourth argument is a function, which is going to be applied on the dependent part. 
-		The default is None for both.
-		*)
-		
-		(*
-		If the expression is free of the variable it gives back the expression. If not, then it
-			1. expands it only in the varibale(!);
-			2. separates the dependent and independent part of each additive term;
-			3. gathers by the dependent part;
-			4. adds together all of the independent parts for each structure.
-			5. applies give function on the terms.
-			
-		The bootleneck might be Expand, because it is a really slow funtion in Wolfram Mathematica.
-		*)
-		
+
+               (*
+                This function takes any expression and gathers the terms with the same unique variable dependent structure.
+                The variable can be anything, which FreeQ recognizes.
+
+                  1. The first argument is the expression.
+                  2. The second argument is the variable, which must have the head Symbol, And, Or, Alternatives or Pattern.
+                  3. The optional third argument is a function, which is going to be applied on the independent terms. The default
+                is None.
+                  4. The optional forth argument is a function, which is going to be applied on the dependent terms. The default
+                is None.
+                *)
+
+                (*
+                If the expression is free of the variable it gives back the expression. If not, then it
+                        1. expands;
+                        2. separates the dependent and independent part of each additive and/or multiplicative term,
+                        3. gathers by the dependent part,
+                        4. applies the appropiate function(s) on the appropiate term(s),
+                        5. adds together all of the independent parts for each structure.
+
+                The bootleneck might be Expand, cuz' it is a really slow funtion in Wolfram Mathematica.
+                *)
+
+
 ClearAll[GatherByDependency]
 
-GatherByDependency[expr_,var_]:=expr/;FreeQ[expr,var]
-GatherByDependency[expr_,var_,__]:=expr/;FreeQ[expr,var]
+GatherByDependency[expr_, var_, ApplyFunctionOnIndependent_ : None, ApplyFunctionOnDependent_ : None]:=
+        If[ApplyFunctionOnIndependent===None,
 
-GatherByDependency[expr_,var_, ApplyFunctionOnIndependent_ : None, ApplyFunctionOnDependent_ : None]:=Block[
+                expr,
+                expr//ApplyFunctionOnIndependent
+        ]/;FreeQ[expr,var]
+
+GatherByDependency[expr_Plus|expr_Times, var_, ApplyFunctionOnIndependent_ : None, ApplyFunctionOnDependent_ : None]:=Block[
 {
-tmp=expr
+tmp=expr,
+tmpFreeOfVar,
+tmpNotFreeOfVar
 },
 
-	tmp=tmp//Expand[#,var]&;
-	tmp=tmp//Dependent[#,var]&;
-	tmp=tmp//GatherBy[#,Last]&;
-	
-	Switch[
-		{
-		ApplyFunctionOnIndependent,
-		ApplyFunctionOnDependent
-		},
-		{None,None}, tmp=Flatten[{#[[All,1]]//Total,#[[1,2]]}]&/@tmp;,
-		{_,None},    tmp=Flatten[{#[[All,1]]//Total//ApplyFunctionOnIndependent,#[[1,2]]}]&/@tmp;,
-		{None,_},    tmp=Flatten[{#[[All,1]]//Total,#[[1,2]]//ApplyFunctionOnDependent}]&/@tmp;,
-		{_,_},       tmp=Flatten[{#[[All,1]]//Total//ApplyFunctionOnIndependent,#[[1,2]]//ApplyFunctionOnDependent}]&/@tmp;
-	];
-	Plus@@Times@@@tmp
+        tmp=tmp//Expand[#,var]&;
+
+        If[tmp===0, Return[tmp,Block] ];
+
+        If[Head[tmp]=!=Plus,
+				
+		        If[Length[tmp]===0,
+			
+				tmpFreeOfVar=If[FreeQ[tmp,var], tmp, 1];
+				tmpNotFreeOfVar=If[!FreeQ[tmp,var], tmp, 1];,
+				
+		        tmpFreeOfVar=tmp//Select[#, FreeQ[#,var]& ]&;
+		        tmpNotFreeOfVar=tmp//Select[#, !FreeQ[#,var]& ]&;
+		        
+		        ]
+		
+
+        Switch[
+                        {
+                        ApplyFunctionOnIndependent,
+                        ApplyFunctionOnDependent
+                        },
+                        {None,None}, tmp=tmpFreeOfVar*tmpNotFreeOfVar;,
+                        {_,None},    tmp=(tmpFreeOfVar//ApplyFunctionOnIndependent)*tmpNotFreeOfVar;,
+                        {None,_},    tmp=tmpFreeOfVar*(tmpNotFreeOfVar//ApplyFunctionOnDependent);,
+                        {_,_},       tmp=(tmpFreeOfVar//ApplyFunctionOnIndependent)*(tmpNotFreeOfVar//ApplyFunctionOnDependent);
+                ];
+
+        tmp,
+
+        tmp=tmp//Dependent[#,var]&;
+
+        If[Head[tmp]=!=List,
+
+                tmp,
+
+
+                tmp=tmp//GatherBy[#,Last]&;
+
+                Switch[
+                        {
+                        ApplyFunctionOnIndependent,
+                        ApplyFunctionOnDependent
+                        },
+                        {None,None}, tmp=Flatten[{#[[All,1]]//Total,#[[1,2]]}]&/@tmp;,
+                        {_,None},    tmp=Flatten[{#[[All,1]]//Total//ApplyFunctionOnIndependent,#[[1,2]]}]&/@tmp;,
+                        {None,_},    tmp=Flatten[{#[[All,1]]//Total,#[[1,2]]//ApplyFunctionOnDependent}]&/@tmp;,
+                        {_,_},       tmp=Flatten[{#[[All,1]]//Total//ApplyFunctionOnIndependent,#[[1,2]]//ApplyFunctionOnDependent}]&/@tmp;
+                ];
+                Plus@@Times@@@tmp
+        ]
+
+        ]
 
 ]
+
+GatherByDependency[expr_, var_, ApplyFunctionOnIndependent_ : None, ApplyFunctionOnDependent_ : None]:=
+        If[ApplyFunctionOnDependent===None,
+
+                expr,
+                expr//ApplyFunctionOnDependent
+        ]
+
+
+(* ::Subsubsection::Closed:: *)
+(*GatherByDenominator*)
 
 
 (* ::Input::Initialization:: *)
@@ -162,12 +242,12 @@ tmp=expr
 
 		na/(1-x)-(na+nb)/(1-x)
 
-		Thus one has to apply a function, which helps Mathematica regonize the same additive terms.
+		Thus one has to apply a function, which helps Mathematica recognize the same additive terms.
 	  This can be anything, like Expand, Factor, Together, Simplify, etc. 
 	  Although these can be time consuming depending on the expression.
 
 		GatherByDenominator gathers terms by their denominator and expands their numerator, thus canceling
-		some of the terms; though it provides only a patrial cancelation.
+		some of the terms; though it provides only a partial cancelation.
 		*)
 
 ClearAll[GatherByDenominator];
@@ -187,50 +267,8 @@ Block[
 GatherByDenominator[expr_]:=expr
 
 
-		(*
-		This function is basically the implementation of Eq. 15 from the article. It does the polynomial division 
-		in the case for fractions of the type x^m/((x-r)^n), when m and n are integers.
-		*)
-
-ClearAll[ReplaceRemainedStructure]
-
-		(*Rule needed to be able to use Fold in the mathematicaPartialFraction function.*)
-ReplaceRemainedStructure[var_][expr1_,expr2_]:=ReplaceRemainedStructure[var,expr1*expr2]
-
-		(*
-		The 0th stage is needed for the expand, otherwise we would need a complicated
-		if to avoid an infinite iteration.
-		*)
-ReplaceRemainedStructure[var_,expr_]:=ReplaceRemainedStructure[var,expr,0]
-ReplaceRemainedStructure[var_,expr_,0]:=ReplaceRemainedStructure[var,Expand[expr,var],1]
-ReplaceRemainedStructure[var_,expr_Plus,1]:=ReplaceRemainedStructure[var,#,1]&/@expr
-
-ReplaceRemainedStructure[
-	var_,
-	c_. var_^n_. (a_+var_)^m_/;Head[n]===Integer&&Head[m]===Integer&&(m<0)&&n>=m,
-	1]:=
-	Block[
-	{
-	},
-	ReplaceRemainedStructure[var,
-		Sum[
-			c*
-			(-1)^Mod[i-(-m-n),2]*
-			Binomial[n,i-(-m-n)]*
-			a^(i-(-m-n))/(a+var)^i,
-			{i,1,-m}
-		]+
-		Sum[
-			c*
-			(-1)^(i+Mod[n+m,2])*
-			Binomial[(n-1-i),
-			-m-1]a^(n+m-i) var^i,
-			{i,0,n+m}
-		]
-	]
-	]
-
-ReplaceRemainedStructure[var_,expr_,1]:=expr
+(* ::Subsubsection::Closed:: *)
+(*SeparateFrac*)
 
 
 (* ::Input::Initialization:: *)
@@ -297,15 +335,795 @@ a,b
 
 	keepFrac=Cases[
 				LinApartOne[0]*tmp,
-				A_^n_./;PolynomialQ[A,var]&&Exponent[A,var]===1,
+				A_^n_./;(PolynomialQ[A,var])&&FreeQ[n,var],
 				1];
 	
 	keepFrac=Times@@keepFrac;
 	
-	ignoreFrac=tmp/keepFrac/.LinApartOne[n_]->1/.TmpPower[a_,b_]->a^b;
+	ignoreFrac=tmp/keepFrac;
 	
-	{ignoreFrac,keepFrac}
+	{ignoreFrac,keepFrac}/.LinApartOne[0]->1/.TmpPower[a_,b_]->a^b
 ]
+
+
+(* ::Subsubsection::Closed:: *)
+(*NormalizeDenominators*)
+
+
+ClearAll[NormalizeDenominators]
+
+NormalizeDenominators[denominator_, var_]:=
+	Block[
+	{
+	tmp1a,tmp1b,tmp,tmpNum,
+	den,pows,const,prefac
+	},
+	
+	tmp=denominator;
+	tmp1a=Numerator[tmp];
+	tmp1b=1/Denominator[tmp];
+	tmp1b=If[Head[tmp1b]===Power,{tmp1b},List@@tmp1b];
+	
+	
+	tmp=GetExponent[#,var]&/@List@@tmp1b;
+	den=tmp[[All,1]];
+	pows=tmp[[All,2]];
+	
+	const=den//CoefficientList[#,var]&;
+	prefac=Times@@(const[[All,-1]]^pows);
+	
+	const=#/Last[#]&/@const;
+	const={Length[#]-1,#}&/@const;
+	
+	{prefac,tmp1a Product[Sum[var^j const[[k,2,j+1]],{j,0,const[[k,1]]}]^pows[[k]] ,{k,Length[const]}]}
+	
+	]
+
+
+(* ::Subsection:: *)
+(*Helper functions for LinApart2*)
+
+
+(* ::Subsubsection::Closed:: *)
+(*ReportTime*)
+
+
+(*
+This is just a simple function to measure the time, I mainly use it for debugging.
+*)
+
+ClearAll[ReportTime]
+
+ReportTime[label_String, lastTime_?NumericQ] :=
+ Block[
+	 {
+	 currentTime, 
+	 elapsed
+	 },
+
+	currentTime = AbsoluteTime[];
+	elapsed = currentTime - lastTime;
+	Print[label, ": ", NumberForm[elapsed, {5, 4}], " seconds"];
+	  
+	currentTime
+]
+
+
+(* ::Subsubsection::Closed:: *)
+(*ComputeParallel *)
+
+
+(* ::Input::Initialization:: *)
+ClearAll[ComputeParallel]
+
+ComputeParallel[expr_List, function_, numberOfCores_Integer, $PATHTMP_String]:=
+Block[
+     {
+	results, tmp, tmpTiming,
+        list=expr,step,
+        
+        lengthList=Length[expr],
+        tmpFolderName,tmpJobNumber,
+        submit,
+
+		startTime,tmpTime
+        },
+
+
+				(*Writing the expression to file.*)
+
+		(*Generate random folder name.*)
+	tmpFolderName=$PATHTMP <> "tmp"<>ToString[RandomInteger[{1,10^10}]]<>"/";
+    Print["Writing to file starts. Length of the list: "<> ToString[lengthList] <>"."];
+
+
+		(*If the directory exists overwrite it.*)
+        If[DirectoryQ[tmpFolderName],
+
+                DeleteDirectory[tmpFolderName, DeleteContents -> True]
+
+        ];
+	CreateDirectory[tmpFolderName];
+
+		(*Start of actual exporting.*)
+	startTime=AbsoluteTime[];
+        Do[
+
+                Print["Writing to file " <> ToString[i] <> "/" <> ToString[lengthList] <> "."];
+                tmp = list[[i]];
+                DumpSave[tmpFolderName <> "tmp" <> ToString[i] <> ".mx", tmp];,
+
+        {i, 1, lengthList}
+        ];
+   tmpTime=ReportTime["Exporting is done in" ,startTime];
+
+
+
+					(*Distributing tasks to the subkernels*)
+
+		(*Clear temporary variables and share job counting variable across kernels.*)
+	Clear[tmp,tmpJobNumber];
+	tmpJobNumber=lengthList;
+	SetSharedVariable[tmpJobNumber];
+
+
+				(*Distributing the task to the subkernels.*)
+	ParallelDo[
+
+                Print[ToString[$KernelID] <>": Calculation started."];
+
+                Import[tmpFolderName<> "/tmp" <> ToString[i] <> ".mx"];
+                {tmpTiming,tmp}=tmp//function//AbsoluteTiming;
+
+                Print[
+                        ToString[$KernelID] <> ": Calculation finished in: "<>ToString[ tmpTiming ]<>
+                        "; remaining jobs: " <> ToString[tmpJobNumber--] <> "."
+                ];
+
+                DumpSave[tmpFolderName <> "/tmp" <> ToString[i] <> ".mx", tmp];,
+
+
+		{i,1,lengthList},
+		Method -> "FinestGrained",
+		ProgressReporting->False
+        ];
+
+		(*Clear temporary variable just to be safe.*)
+        Clear[tmp];
+        startTime=AbsoluteTime[];
+        
+        (*Importing back the results with the main kernel.*)
+       results=Table[
+
+			 Import[tmpFolderName <> "tmp" <> ToString[i] <> ".mx"];
+		Print[ToString[i] <> "/" <> ToString[lengthList]];
+                        
+                        tmp,
+
+        {i, 1, lengthList}
+        ];
+
+	tmpTime=ReportTime["Importing is done in" ,startTime];
+
+		(*Deleting temporary directory.*)
+	DeleteDirectory[tmpFolderName, DeleteContents -> True];
+
+	tmpTime=ReportTime["Deleting directory is done in" ,tmpTime];
+	
+	(*Return results.*)
+	results
+
+]
+
+
+(* ::Subsubsection:: *)
+(*Polynomial reduction modulo a polynomial*)
+
+
+		(*
+
+        A lot of functions are really slow if they take large expressions. We can somethimes circumvent this problem by
+        doing the operation with symbolic coefficient and then substituting.
+
+        *)
+
+ClearAll[MakeCoefficientsSymbolic]
+
+MakeCoefficientsSymbolic[
+                expr_,
+                var_Symbol,
+                dummyFunction_Symbol
+                                                ]:= {dummyFunction[1], {dummyFunction[1]->expr}}/;FreeQ[expr,var]
+                                                
+MakeCoefficientsSymbolic[
+                c_. var_Symbol^pow_.,
+                var_Symbol,
+                dummyFunction_Symbol
+                                                ]:= {dummyFunction[1] var^pow, {dummyFunction[1]->c}}
+                                                
+MakeCoefficientsSymbolic[
+                expr_,
+                var_Symbol,
+                dummyFunction_Symbol
+                                                ]:=
+        Block[
+              	{
+                tmp=expr,
+                rules
+                },
+
+                tmp=tmp//GatherByDependency[#,var,dummyFunction]&;
+                
+                If[tmp//FreeQ[#,var]&, Return[{dummyFunction[1], {dummyFunction[1]->(tmp/.dummyFunction[a_]:>a)}}, Block] ];
+                
+                tmp=If[Head[tmp]===Plus,List@@tmp,{tmp}];
+
+                rules=Table[tmp[[i]]/.c_. dummyFunction[a_]:>Rule[dummyFunction[i],a],{i,1,Length[tmp]}];
+                tmp=Table[tmp[[i]]/.c_. dummyFunction[a_]:>c dummyFunction[i],{i,1,Length[tmp]}];
+
+                {Plus@@tmp,rules}
+        ]
+
+
+(*
+This is a weird helper function for the reduction. It gives the maximal order, which will have to be reduced during the reduciton.
+
+
+	- if we encounter a monomial it gives back the order of the monomial,
+	
+	- if we have a polynomial in var on some power, it gives back the reduced polynomial's maximum order, which is the (highest order-1)
+	and puts it on the appropiate order. This have two usescases:
+		o one when we have something on a positive power,
+		o one when we have something on some negative power, aka a denominator.
+	In both cases the ReducePolynomialForResidue behaves the same, first it reduces the inner polynomial and only then expands and 
+	reduces again.
+	
+	-if we have some multiplicative terms. Here we dismantle the expression and look at the numerator and denominator separately. 
+
+*)
+
+
+
+ClearAll[GetMaxOrderForReduction]
+	
+GetMaxOrderForReduction[Power[var_Symbol,power_Integer], polynomial_Plus, var_Symbol]:=
+	Block[
+		{
+		},
+		
+			power
+			
+	]/;PolynomialQ[polynomial,var]
+	
+GetMaxOrderForReduction[Power[expr_,power_], polynomial_Plus, var_Symbol]:=
+	Block[
+		{
+		maxOrderOfExpression,
+		maxOrderOfPolyomial
+		},
+		
+			maxOrderOfPolyomial=polynomial//Exponent[#,var]&;
+			
+			(maxOrderOfPolyomial-1)*Abs[power]
+			
+	]/;PolynomialQ[expr,var]&&PolynomialQ[polynomial,var]
+	
+GetMaxOrderForReduction[expr_Times, polynomial_Plus, var_Symbol]:=
+	Block[
+		{
+		tmpNumerator,
+		tmpDenominator,
+		
+		maxOrderOfNumerator,
+		maxOrderOfDenominator,
+		maxOrderOfPolyomial
+		},
+		
+			tmpNumerator=expr//Numerator;
+			tmpDenominator=expr//Denominator;
+			maxOrderOfPolyomial=polynomial//Exponent[#,var]&;
+			
+			maxOrderOfNumerator=tmpNumerator//Exponent[#,var]&;
+			maxOrderOfDenominator=(maxOrderOfPolyomial-1)*(tmpDenominator//Length);
+			
+			maxOrderOfNumerator+maxOrderOfDenominator
+	]/;PolynomialQ[polynomial,var]
+	
+GetMaxOrderForReduction[expr_Plus, polynomial_Plus, var_Symbol]:=
+	Block[
+		{
+		},
+		
+			expr//Exponent[#,var]&
+			
+			
+	]/;PolynomialQ[expr,var]&&PolynomialQ[polynomial,var]
+
+
+(*
+This function generates the reduction rule. It takes two arguments:
+	-the normalized(!) polynomial,
+	-the variable.
+*)
+
+ClearAll[MakeReductionRule]
+
+MakeReductionRule[polynomial_, var_Symbol]:=
+	Block[
+		{
+		tmp,
+		order,tmpRuleReduction,ruleReduction,
+		ruleCoeffs,dummyF
+		},
+			
+			(*Get the highest order of the polynomial*)
+			order=Exponent[polynomial,var];
+			
+			(*"Solve" for the leading monomial.*)
+			tmpRuleReduction=-polynomial+var^order;
+			
+			(*
+			Making of the rule. Notes:
+				-we need there Expand so the monomials merge and if needed we can apply the rule again.
+				-since SetDelayed rules has a HoldAll attribuite at the right hand side, we must use the usual trick with With
+				to insert exact values.
+			*)
+									
+			ruleReduction=With[
+				{
+				i=tmpRuleReduction,
+				j=order
+				},
+				
+				coeff_. var^pow_. :> 
+										(
+										coeff var^Mod[pow,j]
+										i^((pow-Mod[pow,j])/j)//
+											Collect[#,var]&
+										)
+				
+				]
+		
+		]/;PolynomialQ[polynomial,var]
+		
+MakeReductionRule[polynomial_, var_Symbol, maxOrder_Integer]:=
+	Block[
+		{
+		tmp,
+		
+		order,tmpRuleReduction,
+		
+		redcutionorder,tableOfRules
+		},
+		
+			(*Get the highest order of the polynomial*)
+			order=Exponent[polynomial,var];
+			
+			(*"Solve" for the leading monomial.*)
+			tmpRuleReduction=With[
+								{
+								leftHandSide=var^order, 
+								rightHandSide=-polynomial+var^order
+								},
+								
+									leftHandSide -> rightHandSide
+									
+								];
+		
+			tmp=var^(order-1);
+			redcutionorder=maxOrder-order;
+			tableOfRules=Table[
+			
+				tmp=tmp*var//Collect[#,var]&;
+				tmp=tmp/.tmpRuleReduction//Collect[#,var,Together]&;
+				{var^(i+order),tmp},
+				
+				{i,0,redcutionorder}			
+			];
+		
+			Table[
+			
+					With[
+						{
+						leftHandSide=tableOfRules[[i,1]],
+						rightHandSide=tableOfRules[[i,2]]
+						},
+					
+						leftHandSide -> rightHandSide
+					
+					],
+					
+			{i,1,Length[tableOfRules]}			
+			]//Dispatch
+	]
+
+
+ClearAll[ReducePolynomialForResidue]
+
+	
+ReducePolynomialForResidue[expr_List, polynomial_, var_Symbol]:=
+	ReducePolynomialForResidue[#, polynomial, var]&/@expr
+	
+
+ReducePolynomialForResidue[expr_,polynomial_,var_Symbol]:=
+	expr/;FreeQ[expr,var]
+	
+ReducePolynomialForResidue[expr_Plus, polynomial_, var_Symbol]:=
+	ReducePolynomialForResidue[#, polynomial, var]&/@expr/;!PolynomialQ[expr,var]
+	
+	
+ReducePolynomialForResidue[expr_, polynomial_, var_Symbol]:=
+	expr/;PolynomialQ[expr,var]&&(Exponent[expr,var]<=Exponent[polynomial,var]-1)
+	
+
+ReducePolynomialForResidue[expr_Times, polynomial_, var_Symbol]:=
+	Block[
+		{
+		tmp,dummyVar,
+		maxOrder,
+		ruleReduction,
+		ruleCoeffsReductionRule,ruleCoeffsPolynomialReduction,
+		tmpSybmolically,rulesCoeff
+		},
+			
+			maxOrder=GetMaxOrderForReduction[expr,polynomial,var];
+			ruleReduction=MakeReductionRule[polynomial,var,maxOrder];
+			
+			tmp=List@@expr;
+			tmp=ReducePolynomialForResidue[#, polynomial, var]&/@tmp;
+
+			tmp=Table[MakeCoefficientsSymbolic[tmp[[i]],var, Unique[dummyVar]], {i,1,Length[tmp]}];
+			
+			{tmpSybmolically,rulesCoeff}={tmp[[All,1]],tmp[[All,2]]//Flatten//Dispatch};
+		
+			tmp=Times@@tmpSybmolically;	
+			tmp=tmp//Collect[#,var]&;
+			
+			tmp=tmp/.ruleReduction//Collect[#,var]&;
+			
+			tmp=tmp/.rulesCoeff;
+			
+			tmp
+		]	
+	
+ReducePolynomialForResidue[expr_Plus|expr:Power[var_Symbol,power_Integer], polynomial_, var_Symbol]:=
+	Block[
+		{
+		tmp,
+		maxOrder,
+		ruleReduction,
+		ruleCoeffsReductionRule
+		},
+			
+			maxOrder=GetMaxOrderForReduction[expr,polynomial,var];
+			ruleReduction=MakeReductionRule[polynomial,var,maxOrder];
+			tmp=expr/.ruleReduction;
+			
+			tmp
+			
+		
+		]/;PolynomialQ[expr,var]&&((Exponent[expr,var]>=Exponent[polynomial,var])||power>=Exponent[polynomial,var])
+		
+
+	
+ReducePolynomialForResidue[Power[expr_,-1], polynomial_, var_Symbol]:=
+	PolynomialExtendedGCD[polynomial,expr,var][[2,2]]
+		
+ReducePolynomialForResidue[Power[expr_,power_Integer], polynomial_, var_Symbol]:=
+	Block[
+		{
+		tmp,
+		maxOrder,
+		ruleReduction,
+		ruleCoeffsReductionRule,ruleCoeffsPolynomialReduction
+		},
+			
+			maxOrder=GetMaxOrderForReduction[expr^power,polynomial,var];
+			ruleReduction=MakeReductionRule[polynomial,var,maxOrder];
+						
+			tmp=ReducePolynomialForResidue[#, polynomial, var]&/@expr;
+			tmp=Collect[tmp,var]^power//Collect[#,var]&;
+			tmp=tmp/.ruleReduction;
+			
+			tmp
+			
+		
+		]/;PolynomialQ[expr,var]/;power>0
+	
+		
+ReducePolynomialForResidue[Power[expr_,power_Integer], polynomial_, var_Symbol]:=
+	Block[
+		{
+		tmp,
+		maxOrder,
+		ruleReduction,
+		ruleCoeffsReductionRule,ruleCoeffsPolynomialReduction
+		},
+			
+			maxOrder=GetMaxOrderForReduction[expr^power,polynomial,var];
+			ruleReduction=MakeReductionRule[polynomial,var,maxOrder];
+						
+			tmp=PolynomialExtendedGCD[polynomial,expr,var][[2,2]];
+			
+			(*Major bootleneck!!*)
+			tmp=Collect[tmp,var]^-power//Collect[#,var]&;
+			tmp=tmp/.ruleReduction;
+			
+			
+			tmp
+		
+		]/;PolynomialQ[expr,var]/;power<-1
+
+
+(* ::Subsubsection::Closed:: *)
+(*LinApartU*)
+
+
+(*
+Basically this is the S function from the article.
+*)
+
+ClearAll[LinApartU]
+LinApartU[0, var_, polynomial_, {orderOfPolynomial_,listOfConstans_List}]:=orderOfPolynomial
+LinApartU[n_., var_, polynomial_, {orderOfPolynomial_,listOfConstans_List}]:=(-1)^(-n+1)/(-n-1)! D[Log[polynomial],{var,-n}]/;n<0
+LinApartU[n_., var_, polynomial_, {orderOfPolynomial_,listOfConstans_List}]:=
+	Block[
+		{
+		tmp
+		},
+		
+				tmp=Join[{orderOfPolynomial},NewtonsIdentity[n,listOfConstans]];
+				Sum[Binomial[n,i] var^i (*(-1)^(n-i)*) tmp[[n-i+1]] ,{i,0,n}]
+				
+	]/;n>0
+
+
+(* ::Subsubsection::Closed:: *)
+(*NewtonsIdentity*)
+
+
+(*
+It is the implementation of Newton's Identites from 
+
+	https://en.wikipedia.org/wiki/Newton%27s_identities .
+	
+The function is based on the last two equaiton of the section
+Mathematical statement/Forumlation in terms of symmetric polynomials.
+
+These indentites give the power sum ( p_k=Sum[x_i^k, {i,1,n}]) of the roots (x_i-s) of a polynomial 
+in terms of the constants (b_i) of said polynomial.
+*)
+(*
+Note: the constants are elementary symmetric polynomials of the roots.
+*)
+
+(*Clear function name.*)
+ClearAll[NewtonsIdentity]
+
+(*The function takes the maximum desired degree of the power sum and the constants.*)
+NewtonsIdentity[maxDegree_Integer,constants_List]:=
+	Block[
+		{
+		(*Temporary variable.*)
+		powerSum,
+		(*The length of the constants gives the order of the polynomial.*)
+		orderOfPolynomial=Length[constants]
+		},
+
+		Table[
+			
+			(*Branching according to the formulas.*)
+			If[orderOfPolynomial>=k,
+
+			powerSum[k]=(-1)^(k-1) k constants[[k]]+
+				Sum[(-1)^(k-1+i) constants[[k-i]] powerSum[i],{i,1,k-1}],
+
+			powerSum[k]=
+				Sum[(-1)^(k-1+i)constants[[k-i]] powerSum[i],{i,k-orderOfPolynomial,k-1}]
+			],
+
+			{k,1,maxDegree}
+		]
+
+	]/;Length[constants]>=1&&maxDegree>=1 (*Check for nonsensical input.*)
+	
+(*If any of the Heads are wrong, it should return Null and give an error message.*)
+NewtonsIdentity[maxDegree_,constants_List]:=
+	(
+	Message[NewtonsIdentity::mayDegreeIsNotInteger,maxDegree];
+	Null
+	)/;Head[maxDegree]=!=Integer
+	
+NewtonsIdentity[maxDegree_,constants_]:=
+	(
+	Message[NewtonsIdentity::constantsIsNotAList,constants];
+	Null
+	)/;Head[constants]=!=List
+	
+(*If the maxDegree is less than 1 number, it should return Null and an error message.*)
+NewtonsIdentity[maxDegree_Integer,constants_List]:=
+	(
+	Message[NewtonsIdentity::mayDegreeLessThan1];
+	Null
+	)/;maxDegree<=0
+	
+(*If the constants is an empty list, it should return Null and an error message.*)
+NewtonsIdentity[maxDegree_,constants_List]:=
+	(
+	Message[NewtonsIdentity::constantsEmptyList];
+	Null
+	)/;Length[constants]==0
+
+(*If there was no match for any rule, it should notify the user and return NUll.*)
+NewtonsIdentity[maxDegree_,constants_]:=
+	(
+	Message[NewtonsIdentity::noRuleMatch,maxDegree,constants];
+	Null
+	)
+
+(*
+If the number of arguments is not three, it should notify the user and return NUll.
+The CheckArguments has the error message so we don't have to define one.
+*)
+NewtonsIdentity[arg___]:=Null/;CheckArguments[NewtonsIdentity[arg],2]
+
+
+(*Usage*)
+NewtonsIdentity::usage=
+"
+NewtonsIdentity[maxDegree_Integer, constants_List]
+
+This function gives the power sum ( p_k=Sum[x_i^k, {i,1,n}]) of the roots (x_i-s) of a polynomial in terms of the constants (b_i) of said polynomial.
+
+The first argument is the order of the highest power sum, while the second is the list of constants. It returns all of the power sums up the the given maximum degree.
+";
+
+(*Error messages*)
+NewtonsIdentity::mayDegreeIsNotInteger="The given degree (`1`) is not an Integer.";
+NewtonsIdentity::constantsIsNotAList="The second argument (`1`) expects a list.";
+NewtonsIdentity::mayDegreeLessThan1="The first argument must be greater or equal 1.";
+NewtonsIdentity::constantsEmptyList="The second argument must not be an empty list.";
+NewtonsIdentity::noRuleMatch="There were no rules matching the gives input. The first argument (`1`) should be the degree of the highest desired power sum, while the second (`2`) the list of constants.";
+
+
+(* ::Subsubsection::Closed:: *)
+(*DistributeAll*)
+
+
+ClearAll[DistributeAll]
+
+DistributeAll[expr_List]:=DistributeAll[#]&/@expr
+DistributeAll[expr_Plus]:=DistributeAll[#]&/@expr
+DistributeAll[expr_]:=expr//.Times[a_,b__]:>Distribute[Times[a,b],Plus,Times]
+DistributeAll[expr_,var_]:=expr//.Times[a_,b_,c__]/;!FreeQ[a,var]&&!FreeQ[b,var]:>
+										Times[Distribute[Times[a,b],Plus,Times],c]
+
+
+(* ::Subsubsection::Closed:: *)
+(*CheckNumericallyIfZero*)
+
+
+ClearAll[CheckNumericallyIfZero]
+
+CheckNumericallyIfZero[expr_]:=
+	Block[
+	{
+	tmp,vars,ruleVars
+	},
+	
+		vars=expr//Variables;
+		ruleVars=Table[vars[[i]]->RandomPrime[10^6],{i,1,Length[vars]}]//Dispatch;
+		
+		tmp=expr/.ruleVars;
+		
+		If[tmp===0,
+		
+			0,
+			expr
+		]
+	
+	]
+
+
+(* ::Subsubsection::Closed:: *)
+(*ResidueForLaurentSeries*)
+
+
+ClearAll[ResidueForLaurentSeries]
+
+	(*
+	Notes:
+		-I had to put the condition inside the rule, cuz' somehow it did not work at the end.
+		-I have to add everything up here otherwise I must use Flatten and that takes a lot of time, thus
+		we lose the advantage of parallel computation.
+	*)
+ResidueForLaurentSeries[coeff_, list_List/;ArrayDepth[list]>1]:=(list//Map[(coeff*ResidueForLaurentSeries@@#)&,#]&)
+ResidueForLaurentSeries[coeff_, list_List/;ArrayDepth[list]==1]:=coeff*ResidueForLaurentSeries@@list
+
+ResidueForLaurentSeries[
+	restOfFunction_, pole_,
+	multiplicity_Integer,
+	poleOrder_Integer,
+	{1,constant_List}, var_
+		]:=
+	Block[
+		{
+		barePole=If[True, pole/.Power[expr_,power_Integer]:>expr,pole]
+		},
+		
+			1/barePole^poleOrder (1/(multiplicity-poleOrder)!*
+				D[restOfFunction,{var,multiplicity-poleOrder}]/.var->-constant[[1]])
+				
+	]
+	
+ResidueForLaurentSeries[
+	restOfFunction_, pole_,
+	multiplicity_Integer,
+	poleOrder_Integer,
+	{orderOfPolynomial_Integer,listOfConstans_List}, var_
+		]:=
+	Block[
+		{
+		tmp,tmpTiming,tmpRules,tmpR,tmpS,power,
+		dens,simplifiedDens,ruleDens,
+		order,tmpRuleReduction,ruleReduction,
+		barePole=If[Head[pole]===Power, pole/.Power[expr_,power_Integer]:>expr,pole],
+		
+		tmpNum,tmpNumRules,tmpDen
+		},
+		
+			
+		(*
+		Final Sum for the residue, we must go through every order starting form 1 to the pole's multiplicity.
+		
+			1. We derivate the R[x]/S[x] rational polynomial. R[x] is the rest of the function, S[x] is the denominator
+			without the pole (x-a[i]).
+			
+			2. We simplfy the expression with the PolynomialGCD method.
+			
+			3. We express the remaning expressions in terms of the original coefficients of the 
+			bare root.
+			
+		*)
+					
+			tmp=1/(multiplicity-poleOrder)! *
+					D[tmpR[var]/tmpS[var]^multiplicity,{var,multiplicity-poleOrder}];
+			
+			tmp=tmp/.tmpR[var]:>restOfFunction;
+			tmp=tmp/.D[tmpR[var],{var,power_}]:>D[restOfFunction,{var,power}];
+			
+			tmp=tmp/.tmpS[var]:>D[barePole,{var,1}];
+			tmp=tmp/.D[tmpS[var],{var,power_}]:>D[barePole,{var,power+1}]/(power+1); (*S can be expressed as the derivative of the bare pole.*)
+			
+			
+			tmp=tmp//Together;
+			tmp=Collect[Numerator[tmp],var]/Denominator[tmp];
+			
+				(*Major bottleneck!!*)
+			tmp=tmp//ReducePolynomialForResidue[#,barePole,var]&;
+			tmp=tmp//CoefficientList[#,var]&;
+			
+			
+			Sum[
+					tmp[[powL+1]]
+					Sum[
+						Binomial[powL, i]*
+							(
+								var^i (-1)^(powL-i)*
+								LinApartU[-poleOrder+powL-i, 
+											var,
+											barePole,
+											{orderOfPolynomial, Reverse[listOfConstans]}
+									]
+							)//Apart[#,x]&
+							
+						,{i,0,powL}
+					]
+					
+				,{powL,0,Length[tmp]-1}
+			]
+		
+	]
 
 
 (* ::Subsection::Closed:: *)
@@ -315,8 +1133,8 @@ a,b
 												(*Front function*)
 												
 		(*
-		This is basically just the front of the function, all it does it checks weather the input has
-		no crucial mistakes like the number of argument, options and their values.
+		This is basically just the front of the function, all it does it checks wheather the input has
+		no crucial mistakes like the number of arguments, options and their values.
 		*)
 
 ClearAll[LinApart]
@@ -325,36 +1143,63 @@ ClearAll[LinApart]
 		Setting the default OptionValues.
 		*)
 Options[LinApart]=
-	{"Factor"->False,
-	 "GaussianIntegers"->False,
+	{"Method"->"ExtendedLaurentSeries",
+	
+	 "Factor"->True,
+	 "GaussianIntegers"->True,
+	 "Extension"->{},
+	 
+	 "Parallel"->{False,None,None},
+	 
 	 "PreCollect"->False, 
 	 "ApplyAfterPreCollect"->None,
-	 "Language"->"Mathematica"
+	 "Language"->"Mathematica" (*Obsolute cuz' we removed the C version; it is now standalone.*)
 	 };
+
+OptionMethodCases={"ExtendedLaurentSeries","Euclidean","EquationSystem"};	 
 	 
 OptionFactorCases={True,False};
 OptionGaussianIntegersCases={True,False};
+OptionExtensionCases={True,False};
+
+OptionParallelCases={True,False};
+
 OptionPreCollectCases={True,False};
-OptionLanguageCases={"Mathematica","C"};
+OptionLanguageCases={"Mathematica","C"}; (*Obsolute cuz' we removed the C version; it is now standalone.*)
 
 		(*Setting the properties*)
-SetAttributes[LinApart,Listable]
+SetAttributes[LinApart,Listable] (*This can lead to isses, if applied on SeriesData structures. MUST FIX!!
 
+									I thought about this and I leave it here, cuz' this is
+									Mathematica's fault and even the buit-in functions can behave weridly
+									with SeriesData structures.
+									*)
 		(*
 		The first argument will be the expression, 
 		the second the variable, 
-		the other must be options.
+		the others must be options.
 		*)
 	
 		(*
-		Since we are using the derivation function of Mathematica at the end the variable must be a symbol. 
-		One could this easily circumvent by renaming the desired expression by a variable.
+		Since we are using the derivation function of Mathematica at the end, the variable must be a symbol.
 		*)
 		
 		(*
 		In principle Mathematica can handel wrong Option input, but cannot handel wrong OptionValue input by itself.
 		Thus we must check manually.
 		*)
+		
+LinApart[expr_, var_, options : OptionsPattern[]]:=
+	(
+	Message[LinApartError::wrongOption,
+								"Method"
+							];
+	expr
+	)/;!MemberQ[OptionMethodCases,OptionValue["Method"]]
+
+
+
+	
 LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
 	Message[LinApartError::wrongOption,
@@ -372,6 +1217,96 @@ LinApart[expr_, var_, options : OptionsPattern[]]:=
 	expr
 	)/;!MemberQ[OptionGaussianIntegersCases,OptionValue["GaussianIntegers"]]
 	
+LinApart[expr_, var_, options : OptionsPattern[]]:=
+	(
+	Message[
+		LinApartError::wrongOption,
+		"Extension"
+	];
+	expr
+	)/;Head[OptionValue["Extension"]]=!=List||
+			(OptionValue["Extension"]=!={}&&!And@@Map[NumberQ,OptionValue["Extension"]//N])
+
+
+
+
+
+LinApart[expr_, var_, options : OptionsPattern[]]:=
+	(
+	Message[
+		LinApartError::wrongOption,
+		"Parallel"
+	];
+	expr
+	)/;(!MemberQ[OptionParallelCases,OptionValue["Parallel"][[1]]] ||
+			Head[OptionValue["Parallel"][[2]]]!=Integer ||
+				Head[OptionValue["Parallel"][[3]]]!=String)
+
+	
+LinApart[expr_, var_, options : OptionsPattern[]]:=
+	Block[
+	{
+	newOptions
+	},
+	
+	
+	Message[
+		LinApartError::noParallelKernels
+	];
+	
+	newOptions={options}/.\!\(\*
+TagBox[
+StyleBox[
+RowBox[{
+RowBox[{"Rule", "[", 
+RowBox[{"\"\<Parallel\>\"", ",", " ", 
+RowBox[{"{", 
+RowBox[{"True", ",", "a__"}], "}"}]}], "]"}], " ", ":>", " ", 
+RowBox[{"Rule", "[", 
+RowBox[{"\"\<Parallel\>\"", ",", " ", 
+RowBox[{"{", 
+RowBox[{"False", ",", "a"}], "}"}]}], "]"}]}],
+ShowSpecialCharacters->False,
+ShowStringCharacters->True,
+NumberMarks->True],
+FullForm]\);
+	LinApart[expr, var, ##]&@@newOptions
+	
+	]/;(OptionValue["Parallel"][[1]]&&$KernelCount===0)
+	
+
+LinApart[expr_, var_, options : OptionsPattern[]]:=
+	Block[
+	{
+	newOptions
+	},
+	
+	Message[
+		LinApartError::ParallelComputationError
+	];
+	
+	newOptions={options}/.\!\(\*
+TagBox[
+StyleBox[
+RowBox[{
+RowBox[{"Rule", "[", 
+RowBox[{"\"\<Parallel\>\"", ",", " ", 
+RowBox[{"{", 
+RowBox[{"True", ",", "a__"}], "}"}]}], "]"}], " ", ":>", " ", 
+RowBox[{"Rule", "[", 
+RowBox[{"\"\<Parallel\>\"", ",", " ", 
+RowBox[{"{", 
+RowBox[{"False", ",", "a"}], "}"}]}], "]"}]}],
+ShowSpecialCharacters->False,
+ShowStringCharacters->True,
+NumberMarks->True],
+FullForm]\);
+	LinApart[expr, var, ##]&@@newOptions
+	
+	]/;(OptionValue["Parallel"][[1]]&&OptionValue["Method"]=!="ExtendedLaurentSeries")
+
+
+
 
 LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
@@ -391,6 +1326,12 @@ LinApart[expr_, var_, options : OptionsPattern[]]:=
 	expr
 	)/;!OptionValue["PreCollect"]&&!OptionValue["ApplyAfterPreCollect"]===None
 	
+	
+	
+	
+	
+	
+	
 LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
 	Message[
@@ -406,10 +1347,14 @@ LinApart[expr_, var_, options : OptionsPattern[]]:=
 	expr
 	)/;Head[var]=!=Symbol
 	
+	
+	
+	
 		(*If every option value is good proceed to Preprocessing.*)
+LinApart[expr_, var_, options : OptionsPattern[]]:=Apart[expr,var]/;OptionValue["Method"]==="EquationSystem"
 LinApart[expr_, var_, options : OptionsPattern[]]:=PreProccesorLinApart[expr, var, options, 0]/;Head[var]===Symbol
 
-		(*This is a new function might cause an error stating it reached the limit of recursion.*)
+		(*This is a new function might cause an error stating it reached the limit of recursion for lower versions.*)
 LinApart[arg___]:=Null/;CheckArguments[LinApart[arg],2]
 
 
@@ -420,7 +1365,7 @@ LinApart[arg___]:=Null/;CheckArguments[LinApart[arg],2]
 												(*Main function*)
 												
 	(*
-	The function is written in stages fot two main reasons:
+	The function is written in stages for two main reasons:
 		1. easier debugging and readability.
 		2. this give more flexibility in coding.
 		
@@ -429,7 +1374,7 @@ LinApart[arg___]:=Null/;CheckArguments[LinApart[arg],2]
 			-optional term-by-term factoring and or gatering by unique variable dependent structure.
 			
 		1. stage: 
-			-if the expression is a sum applies itself on every term
+			-if the expression is a sum, the function applies itself on every term
 			-handels some special cases, when decomposition is not needed
 			-separates non-variable dependent multiplicative terms
 			-handels special cases in the numerator, e.g. complex/real/non-number powers
@@ -453,7 +1398,6 @@ ClearAll[PreProccesorLinApart]
 	*)
 Options[PreProccesorLinApart]=Options[LinApart];
 
-
 	(*Setting the properties*)
 SetAttributes[PreProccesorLinApart,Listable]
 
@@ -470,10 +1414,12 @@ a,b,n,pow
 },
 	
 	tmp=If[OptionValue["Factor"],
+	
 			If[Head[tmp]===Plus,
-				Map[Times@@(#//SeparateDependency[#,var]&//MapAt[Factor[#,GaussianIntegers->OptionValue["GaussianIntegers"]]&,#,2]&)&,tmp],
-				Times@@(tmp//SeparateDependency[#,var]&//MapAt[Factor[#,GaussianIntegers->OptionValue["GaussianIntegers"]]&,#,2]&)
+				Map[Times@@(#//SeparateDependency[#,var]&//MapAt[Factor[#,GaussianIntegers->OptionValue["GaussianIntegers"], Extension -> OptionValue["Extension"]]&,#,2]&)&,tmp],
+				Times@@(tmp//SeparateDependency[#,var]&//MapAt[Factor[#,GaussianIntegers->OptionValue["GaussianIntegers"], Extension -> OptionValue["Extension"]]&,#,2]&)
 				],
+				
 			tmp
 		];
 
@@ -487,7 +1433,8 @@ a,b,n,pow
 	
 	(*
 	During the 1. stage: 
-		-applies itself on every term in a sum, if any of the terms
+		-applies itself on every term in a sum
+		-if any of the terms
 			o are indepedent of the variable
 			o are ploynomials
 			o has no denominator or the denominator is independent of the variable
@@ -526,7 +1473,7 @@ a,b,tmpList1,tmpList2
 	(*
 	During the 2. stage:
 		-if the expression in non-factorizeable or just a polynomial it will show up in this step, first 2 rules;
-		-if one a denominator has no root, it will give a dummy one;
+		-if a denominator has no root, it will give a dummy one;
 		-removes every numerator, which is not a monomial in the variable;
 		-does the normalization of the denominators;
 		-removes constants coming from the renormalization;
@@ -546,12 +1493,13 @@ tmpNum,tmpDen,
 keepForDivision=1,
 tmpNumExp,tmpDenExp,
 tmpKeepFrac=keepFrac,
+tmpNormalizationCoeff,tmpNormalizationFrac,
 
 a,b,pow
 },	
 	
 	(*If there is a denominator with root 0, it gaves a dummy root.*)
-	tmpKeepFrac=keepFrac/.Power[var,pow_.]/;pow<0->Power[var-LinAparta[0],pow];
+	tmpKeepFrac=keepFrac(*/.Power[var,pow_.]/;pow<0:>Power[var-LinAparta[0],pow]*);
 	
 	(*
 	It gets out the non-monomial numerators. These are a remanence from when we factored out the not needed powers.
@@ -568,9 +1516,10 @@ a,b,pow
 	
 	(*Normalization.*)
 	tmpKeepFrac=tmpKeepFrac/.Power[a_,pow_]/;pow<0:>Power[Collect[a,var],pow];
-	tmpKeepFrac=tmpKeepFrac/.(a_.+b_. var)^n_./;(n<0):>b^n (a/b+var)^n;
+	{tmpNormalizationCoeff, tmpKeepFrac} = NormalizeDenominators[tmpKeepFrac, var];
+	tmpCoeff=tmpCoeff*tmpNormalizationCoeff;
 	
-	(*Separeting constants, which come from the normalization.*)
+	(*Separating constants, which come from the normalization.*)
 	tmp=SeparateDependency[tmpKeepFrac,var];
 	tmpCoeff=tmpCoeff*tmp[[1]];
 	tmpKeepFrac=tmp[[2]];
@@ -594,25 +1543,35 @@ Block[
 {
 },
 
-	mathematicaPartialFraction[coeff,ignoreFrac,keepForDivision,keepFrac,var]
+	mathematicaPartialFraction[coeff,ignoreFrac,keepForDivision,keepFrac,var, options]
 	
 ]
 
 
 (* ::Subsection::Closed:: *)
-(*Partial fraction functions*)
+(*Partial fraction function*)
 
 
 (*Implementation of the partial fracction algorithm based on the residue method.*)
 
-ClearAll[mathematicaPartialFraction]
+ClearAll[mathematicaPartialFraction]	
 
-mathematicaPartialFraction[coeff_,ignoreFrac_,keepForDivision_,keepFrac_,var_]:=Block[
+	(*
+	Setting the default OptionValues; which are inherited from LinApart.
+	*)
+Options[mathematicaPartialFraction]=Options[LinApart];
+
+mathematicaPartialFraction[coeff_,ignoreFrac_,keepForDivision_,keepFrac_,var_, options : OptionsPattern[]]:=
+Block[
 {
-tmp=keepFrac,
+tmp=keepFrac,prefac,
 tmp1a,tmp1a1,tmp1a2,
 tmp1b,tmp1b1,tmp1b2,
-m,den,const,a,pow
+m,den,const,a,pow,
+tmpPolynomialPart,
+tmpFractionedPart,
+
+startTime,tmpTime
 },
 	
 	tmp1a=Numerator[tmp];
@@ -622,54 +1581,147 @@ m,den,const,a,pow
 	
 	tmp=GetExponent[#,var]&/@List@@tmp1b;
 	den=tmp[[All,1]];
-	const=den/.var->0;
+	
+	const=den//CoefficientList[#,var]&;
+	
+	const=const[[All,;;-2]];
+	const={Length[#],#}&/@const;
+	
 	m=-tmp[[All,2]];
 	
-	tmp=Sum[
-		Sum[
+	tmpPolynomialPart=
+		If[FreeQ[keepForDivision,var],
+				0,
+				coeff*ignoreFrac*(Series[keepForDivision*keepFrac,{var,\[Infinity],0}]//Normal)
+		];
 		
-			(*
-			The Expand here is a serious bottleneck if applied to the whole formula!
-			Thus, I opted for Distribute, which do not gives us a fully expanded form but is something.
-			*)
-				If[FreeQ[keepForDivision,var],
-					
-					Distribute[	
-						coeff*ignoreFrac*keepForDivision*
-						(D[tmp1a*(Times@@Delete[tmp1b,i]),{var,m[[i]]-j}]/.var->-const[[i]])/(m[[i]]-j)!/(den[[i]]^j),
-						Plus,Times
-					],
-					
-					
-					Distribute[	
-						coeff*
-						ignoreFrac*
-						Expand[
-							If[Head[keepForDivision]===Times,
-								Fold[
-									ReplaceRemainedStructure[var],1,
-									Reverse[List@@(keepForDivision/(den[[i]]^j))]
+	tmpFractionedPart=Table[
+							Table[
+							
+											{
+											keepForDivision*tmp1a*Times@@Delete[tmp1b,i],
+											1/tmp1b[[i]],
+											m[[i]],
+											poleOrder,
+											const[[i]],
+											 var
+											 },
+											 
+								{poleOrder, 1, m[[i]]}
 								],
-								ReplaceRemainedStructure[var,keepForDivision/(den[[i]]^j)]
-							],
-							var
-						]*
-						(D[tmp1a*(Times@@Delete[tmp1b,i]),{var,m[[i]]-j}]/.var->-const[[i]])/(m[[i]]-j)!,
-						Plus,Times
-					]
-				],
-				
-		{j,1,m[[i]]}],
-	{i,1,Length[tmp1b]}];	
+						{i,1,Length[tmp1b]}]//Flatten[#,1]&;
+			(*
+			I place coeff*ignoreFrac because if they are big, then they significantly slow down the sums
+			inside ResidueForLaurentSeries. Of course if somebody wants the whole expression expanded then
+			they can easily place it inside and spare some time.
+			
+			But either way this routine does not deliver an expanded coefficients for the residues.
+			*)
 	
+	
+		(*
+		Important note: Plus has to unpack packed-arrays in order to add everything together, while Total can
+		operate on packed-arrays.
+		*)
+	(If[OptionValue["Parallel"][[1]],
+	
+		tmpFractionedPart=tmpFractionedPart//RandomSample//Partition[#,UpTo[ Length[#]/OptionValue["Parallel"][[2]]//Ceiling ]]&;
+		ComputeParallel[
+						tmpFractionedPart,
+						(ResidueForLaurentSeries[coeff*ignoreFrac,#])&,
+						OptionValue["Parallel"][[2]],
+						OptionValue["Parallel"][[3]]
+					]//Flatten,
+					
+		Table[coeff*ignoreFrac*ResidueForLaurentSeries@@i,{i,tmpFractionedPart}]
+	]//Total)+tmpPolynomialPart
+	
+]/;OptionValue["Method"]==="ExtendedLaurentSeries"
+
+mathematicaPartialFraction[coeff_,ignoreFrac_,keepForDivision_,keepFrac_,var_, options : OptionsPattern[]]:=
+	Block[
+	{
+  tmpPolynomialPart,
+
+	tmp,tmpRules,
+	tmp1,tmp2,tmp1Rules,tmp2Rules,
+	dens,pairs,
+	tmpGCDs,dummyGCDs,
+	rulesGCD,dummyRulesGCD,pow1,pow2,tmpCoeff
+	},
+
+	
+    tmpPolynomialPart=
+		If[FreeQ[keepForDivision,var],
+				0,
+				coeff*ignoreFrac*(Series[keepForDivision*keepFrac,{var,\[Infinity],0}]//Normal)
+		];
+
+
+	tmp=Denominator[keepFrac];
+	tmp=If[Head[tmp]===Power,{tmp},List@@tmp];
+	
+	
+	tmp=GetExponent[#,var]&/@List@@tmp;
+	dens=tmp[[All,1]];
+
+
+	pairs=Subsets[dens,{2}];
+
+         tmp=Table[ 
+
+			tmp=PolynomialExtendedGCD[pairs[[i,1]],pairs[[i,2]],var][[2]];
+
+			{tmp1,tmp1Rules}=tmp[[1]]//MakeCoefficientsSymbolic[#,var,Unique[dummyF]]&;
+   		      {tmp2,tmp2Rules}=tmp[[2]]//MakeCoefficientsSymbolic[#,var,Unique[dummyF]]&;
+
+				 {{pairs[[i,1]] tmp1, pairs[[i,2]]tmp2},Flatten[{tmp1Rules,tmp2Rules}]} ,
+
+				{i,1,Length[pairs]}
+			 ];
+	{rulesGCD,tmpRules}={tmp[[All,1]],Flatten[tmp[[All,2]]](*//Dispatch*)};
+
+	dummyRulesGCD=MapThread[
+
+				With[
+				{
+				tmp11=#1[[1]],
+				tmp12=#1[[2]],
+
+				tmp21=#2[[1]],
+				tmp22=#2[[2]]
+				},
+
+							RuleDelayed[
+								tmpCoeff_. Times[tmp11^pow1_, tmp12^pow2_]/;(pow1<0&&pow2<0),
+		
+								tmpCoeff*tmp21*tmp11^pow1*tmp12^pow2+
+									tmpCoeff*tmp22*tmp11^pow1*tmp12^pow2
+	
+					]
+
+					]&,
+					
+					{pairs,rulesGCD}
+			]//Dispatch;
+
+	tmp=coeff keepForDivision ignoreFrac keepFrac//.dummyRulesGCD;
+
 	(*
-	This might be a bootleneck if the expression is huge. Can be rewritten with set.
+	-Eventhough, this gathering takes time and we lose efficiency but at least it does not quit the kernel, if I want to expand the result.
+	-Furthermore, since during the reduction we get a lot of multiplication to see the cancelations we must either expand the coefficients
+	of the different dependent structures or check them numerically with high random prime numbers. 
+	(We have to do this eve if we do not do the reduction with symbolic coefficients.)
 	*)
-	tmp/.LinAparta[0]->0
-]
+
+	tmp=tmp//GatherByDependency[#,var,None,Apart[#,var]&]&;
+	tmp=tmp//GatherByDependency[#,var, None, If[PolynomialQ[#,var],0,#]&]&;
+
+	tmp+tmpPolynomialPart/.tmpRules
+	]/;OptionValue["Method"]==="Euclidean"
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Text of messages*)
 
 
@@ -680,10 +1732,14 @@ The function gives the partrial fraction decomposition of fractions with linear 
 Options: 
 	-Factor->True/False: factor each additive term in the expression; the default value is False.
 	-GaussianInteger->True/False: factorization of the input expression is performed over the Gaussian integer; the default value is False.
+	-Extension->{a[1], a[2], ...}: option for Factor; factors a polynomial allowing coefficients that are rational combinations of the algebraic numbers a[i].
+	-Parallel->{True/False, NumberOfCores, TemporaryPath}: calculate the residues on multiple cores during the extended Laurent-series method.
 	-PreCollect->True/False: gather by every unique structure in the expression; the default value is False.
 	-ApplyAfterPreCollect -> pure function (e.g. Factor): applies the given function on the variable independent part of each term; the default value is None.
 ";
 
+LinApartError::noParallelKernels="There are no parallel kernels avaliable, procedding with sequential evaluation.";
+LinApartError::ParallelComputationError="Parallel computation is not possible for this method, procedding with sequential evaluation.";
 LinApartError::varNotSymbol="The variable `1` is not a symbol.";
 LinApartError::wrongOption="Problem with option `1`, OptionName or OptionValue not recognized.";
 LinApartError::nonLinearExpression="The expression is non-linear `1`.";
