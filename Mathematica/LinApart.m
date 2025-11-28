@@ -1197,8 +1197,6 @@ LinApart[expr_, var_, options : OptionsPattern[]]:=
 	expr
 	)/;!MemberQ[OptionMethodCases,OptionValue["Method"]]
 
-
-
 	
 LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
@@ -1216,7 +1214,25 @@ LinApart[expr_, var_, options : OptionsPattern[]]:=
 	];
 	expr
 	)/;!MemberQ[OptionGaussianIntegersCases,OptionValue["GaussianIntegers"]]
+
+LinApart[expr_, var_, options : OptionsPattern[]]:=
+	(
+	Message[
+		LinApartError::factorIsFalse,
+		"GaussianIntegers"
+	];
+	expr
+	)/;(OptionValue["GaussianIntegers"]&&!OptionValue["Factor"])
 	
+LinApart[expr_, var_, options : OptionsPattern[]]:=
+	(
+	Message[
+		LinApartError::factorIsFalse,
+		"Extension"
+	];
+	expr
+	)/;(OptionValue["Extension"]=!={}&&!OptionValue["Factor"])
+			
 LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
 	Message[
@@ -1226,8 +1242,6 @@ LinApart[expr_, var_, options : OptionsPattern[]]:=
 	expr
 	)/;Head[OptionValue["Extension"]]=!=List||
 			(OptionValue["Extension"]=!={}&&!And@@Map[NumberQ,OptionValue["Extension"]//N])
-
-
 
 
 
@@ -1306,8 +1320,6 @@ FullForm]\);
 	]/;(OptionValue["Parallel"][[1]]&&OptionValue["Method"]=!="ExtendedLaurentSeries")
 
 
-
-
 LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
 	Message[
@@ -1358,7 +1370,7 @@ LinApart[expr_, var_, options : OptionsPattern[]]:=PreProccesorLinApart[expr, va
 LinApart[arg___]:=Null/;CheckArguments[LinApart[arg],2]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Preprocessor*)
 
 
@@ -1438,6 +1450,7 @@ a,b,n,pow
 			o are indepedent of the variable
 			o are ploynomials
 			o has no denominator or the denominator is independent of the variable
+			o there is only one denominator and the numerator is idependent of the variable
 		 it gives back the expression;
 		-removes non-variable dependent parts
 		-selects the multiplicative terms with complex/real/non-number powers
@@ -1446,7 +1459,9 @@ a,b,n,pow
 PreProccesorLinApart[expr_Plus,var_,options : OptionsPattern[],1]:=PreProccesorLinApart[#,var,options,1]&/@expr
 PreProccesorLinApart[expr_,var_,options : OptionsPattern[],1]:=expr/;FreeQ[expr,var]
 PreProccesorLinApart[expr_,var_,options : OptionsPattern[],1]:=expr/;PolynomialQ[expr,var]
+(*This line might be redundant, since PolynomialQ should take care of this case?*)
 PreProccesorLinApart[expr_,var_,options : OptionsPattern[],1]:=expr/;(Denominator[expr]===1||FreeQ[Denominator[expr],var])&&FreeQ[expr,Power[_,Complex[a_/;a<0,_]]]
+PreProccesorLinApart[expr_,var_,options : OptionsPattern[],1]:=expr/;FreeQ[Numerator[expr],var]&&Head[Denominator[expr]]==Plus
 PreProccesorLinApart[expr_, var_, options : OptionsPattern[], 1]:=Block[
 {
 tmp,
@@ -1731,7 +1746,7 @@ LinApart[expression, variable_Symbol, Options]
 The function gives the partrial fraction decomposition of fractions with linear denominators in the choosen variable; the variable must be a symbol. 
 Options: 
 	-Factor->True/False: factor each additive term in the expression; the default value is False.
-	-GaussianInteger->True/False: factorization of the input expression is performed over the Gaussian integer; the default value is False.
+	-GaussianIntegers->True/False: factorization of the input expression is performed over the Gaussian integer; the default value is False.
 	-Extension->{a[1], a[2], ...}: option for Factor; factors a polynomial allowing coefficients that are rational combinations of the algebraic numbers a[i].
 	-Parallel->{True/False, NumberOfCores, TemporaryPath}: calculate the residues on multiple cores during the extended Laurent-series method.
 	-PreCollect->True/False: gather by every unique structure in the expression; the default value is False.
@@ -1743,3 +1758,4 @@ LinApartError::ParallelComputationError="Parallel computation is not possible fo
 LinApartError::varNotSymbol="The variable `1` is not a symbol.";
 LinApartError::wrongOption="Problem with option `1`, OptionName or OptionValue not recognized.";
 LinApartError::nonLinearExpression="The expression is non-linear `1`.";
+LinApartError::factorIsFalse="`1` is an option for Factor but Factor was set to False."
