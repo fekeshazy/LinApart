@@ -1,6 +1,6 @@
 # LinApart
 
-The LinApart routine can be used for efficiently performing the univariate partial fraction decomposition of large symbolic expressions. The routine is described in the following paper: [arXiv:2405.20130](https://arxiv.org/abs/2405.20130) and ... .
+The LinApart routine can be used for efficiently performing the univariate partial fraction decomposition of large symbolic expressions. The routine is described in the following paper: [arXiv:2405.20130](https://arxiv.org/abs/2405.20130) and https://arxiv.org/pdf/2511.15735 .
 
 Wolfram Mathematica and C language implementations of the routine are provided. The latter includes both a standalone version and a library suitable for linking with other software (e.g. FORM).
 
@@ -51,7 +51,18 @@ make
 
 ### Mathematica
 
-The command LinApart[expr, var] returns the partial fraction decomposition of expr with respect to the variable var. The head of var must be Symbol. 
+LinApart[expression, variable_Symbol, Options] 
+
+The function gives the partrial fraction decomposition of fractions with linear denominators in the choosen variable; the variable must be a symbol. 
+
+Options: 
+	-Factor->True/False: factor each additive term in the expression; the default value is False.
+	-GaussianInteger->True/False: factorization of the input expression is performed over the Gaussian integer; the default value is False.
+	-Extension->{a[1], a[2], ...}: option for Factor; factors a polynomial allowing coefficients that are rational combinations of the algebraic numbers a[i].
+	-Parallel->{True/False, NumberOfCores, TemporaryPath}: calculate the residues on multiple cores during the extended Laurent-series method.
+	-PreCollect->True/False: gather by every unique structure in the expression; the default value is False.
+	-ApplyAfterPreCollect -> pure function (e.g. Factor): applies the given function on the variable independent part of each term; the default value is None.
+
 
 For more detailed usage instructions and examples, refer to the paper and the `LinApart/Examples` directory.
 
