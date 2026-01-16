@@ -28,7 +28,7 @@ Print[
 ];
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Helper functions for LinApart*)
 
 
@@ -115,7 +115,7 @@ Dependent[expr_,var_]:=expr/;FreeQ[expr,var]
 		-making it a list, adgecase, when we only have a multiplication not a sum
 		-separate the variable dependent terms.
 	*)
-Dependent[expr_,var_]:=Block[
+Dependent[expr_,var_]:=Module[
 	{
 	tmp
 	},
@@ -161,7 +161,7 @@ GatherByDependency[expr_, var_, ApplyFunctionOnIndependent_ : None, ApplyFunctio
                 expr//ApplyFunctionOnIndependent
         ]/;FreeQ[expr,var]
 
-GatherByDependency[expr_Plus|expr_Times, var_, ApplyFunctionOnIndependent_ : None, ApplyFunctionOnDependent_ : None]:=Block[
+GatherByDependency[expr_Plus|expr_Times, var_, ApplyFunctionOnIndependent_ : None, ApplyFunctionOnDependent_ : None]:=Module[
 {
 tmp=expr,
 tmpFreeOfVar,
@@ -170,7 +170,7 @@ tmpNotFreeOfVar
 
         tmp=tmp//Expand[#,var]&;
 
-        If[tmp===0, Return[tmp,Block] ];
+        If[tmp===0, Return[tmp,Module] ];
 
         If[Head[tmp]=!=Plus,
 				
@@ -253,7 +253,7 @@ GatherByDependency[expr_, var_, ApplyFunctionOnIndependent_ : None, ApplyFunctio
 ClearAll[GatherByDenominator];
 
 GatherByDenominator[expr_Plus]:=
-Block[
+Module[
 	{tmp=expr},
 	
 	(*tmp=List@@Expand[expr];*)
@@ -295,7 +295,7 @@ TmpPower[expr_,0]:=1
 		*)
 Clear[GetIntOrRatPower]
 
-GetIntOrRatPower[expr_]:=Block[
+GetIntOrRatPower[expr_]:=Module[
 {
 tmp,
 dummy,
@@ -318,7 +318,7 @@ tmp=Plus@@Cases[tmp, n_Rational|n_Integer+_.:>n,1]
 		*)
 Clear[SeparateFrac]
 
-SeparateFrac[expr_,var_]:=Block[
+SeparateFrac[expr_,var_]:=Module[
 {
 tmp,
 keepFrac,
@@ -353,7 +353,7 @@ a,b
 ClearAll[NormalizeDenominators]
 
 NormalizeDenominators[denominator_, var_]:=
-	Block[
+	Module[
 	{
 	tmp1a,tmp1b,tmp,tmpNum,
 	den,pows,const,prefac
@@ -380,7 +380,7 @@ NormalizeDenominators[denominator_, var_]:=
 	]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Helper functions for LinApart2*)
 
 
@@ -395,7 +395,7 @@ This is just a simple function to measure the time, I mainly use it for debuggin
 ClearAll[ReportTime]
 
 ReportTime[label_String, lastTime_?NumericQ] :=
- Block[
+ Module[
 	 {
 	 currentTime, 
 	 elapsed
@@ -417,7 +417,7 @@ ReportTime[label_String, lastTime_?NumericQ] :=
 ClearAll[ComputeParallel]
 
 ComputeParallel[expr_List, function_, numberOfCores_Integer, $PATHTMP_String]:=
-Block[
+Module[
      {
 	results, tmp, tmpTiming,
         list=expr,step,
@@ -546,7 +546,7 @@ MakeCoefficientsSymbolic[
                 var_Symbol,
                 dummyFunction_Symbol
                                                 ]:=
-        Block[
+        Module[
               	{
                 tmp=expr,
                 rules
@@ -554,7 +554,7 @@ MakeCoefficientsSymbolic[
 
                 tmp=tmp//GatherByDependency[#,var,dummyFunction]&;
                 
-                If[tmp//FreeQ[#,var]&, Return[{dummyFunction[1], {dummyFunction[1]->(tmp/.dummyFunction[a_]:>a)}}, Block] ];
+                If[tmp//FreeQ[#,var]&, Return[{dummyFunction[1], {dummyFunction[1]->(tmp/.dummyFunction[a_]:>a)}}, Module] ];
                 
                 tmp=If[Head[tmp]===Plus,List@@tmp,{tmp}];
 
@@ -587,7 +587,7 @@ This is a weird helper function for the reduction. It gives the maximal order, w
 ClearAll[GetMaxOrderForReduction]
 	
 GetMaxOrderForReduction[Power[var_Symbol,power_Integer], polynomial_Plus, var_Symbol]:=
-	Block[
+	Module[
 		{
 		},
 		
@@ -596,7 +596,7 @@ GetMaxOrderForReduction[Power[var_Symbol,power_Integer], polynomial_Plus, var_Sy
 	]/;PolynomialQ[polynomial,var]
 	
 GetMaxOrderForReduction[Power[expr_,power_], polynomial_Plus, var_Symbol]:=
-	Block[
+	Module[
 		{
 		maxOrderOfExpression,
 		maxOrderOfPolyomial
@@ -609,7 +609,7 @@ GetMaxOrderForReduction[Power[expr_,power_], polynomial_Plus, var_Symbol]:=
 	]/;PolynomialQ[expr,var]&&PolynomialQ[polynomial,var]
 	
 GetMaxOrderForReduction[expr_Times, polynomial_Plus, var_Symbol]:=
-	Block[
+	Module[
 		{
 		tmpNumerator,
 		tmpDenominator,
@@ -630,7 +630,7 @@ GetMaxOrderForReduction[expr_Times, polynomial_Plus, var_Symbol]:=
 	]/;PolynomialQ[polynomial,var]
 	
 GetMaxOrderForReduction[expr_Plus, polynomial_Plus, var_Symbol]:=
-	Block[
+	Module[
 		{
 		},
 		
@@ -649,7 +649,7 @@ This function generates the reduction rule. It takes two arguments:
 ClearAll[MakeReductionRule]
 
 MakeReductionRule[polynomial_, var_Symbol]:=
-	Block[
+	Module[
 		{
 		tmp,
 		order,tmpRuleReduction,ruleReduction,
@@ -687,7 +687,7 @@ MakeReductionRule[polynomial_, var_Symbol]:=
 		]/;PolynomialQ[polynomial,var]
 		
 MakeReductionRule[polynomial_, var_Symbol, maxOrder_Integer]:=
-	Block[
+	Module[
 		{
 		tmp,
 		
@@ -757,7 +757,7 @@ ReducePolynomialForResidue[expr_, polynomial_, var_Symbol]:=
 	
 
 ReducePolynomialForResidue[expr_Times, polynomial_, var_Symbol]:=
-	Block[
+	Module[
 		{
 		tmp,dummyVar,
 		maxOrder,
@@ -787,7 +787,7 @@ ReducePolynomialForResidue[expr_Times, polynomial_, var_Symbol]:=
 		]	
 	
 ReducePolynomialForResidue[expr_Plus|expr:Power[var_Symbol,power_Integer], polynomial_, var_Symbol]:=
-	Block[
+	Module[
 		{
 		tmp,
 		maxOrder,
@@ -810,7 +810,7 @@ ReducePolynomialForResidue[Power[expr_,-1], polynomial_, var_Symbol]:=
 	PolynomialExtendedGCD[polynomial,expr,var][[2,2]]
 		
 ReducePolynomialForResidue[Power[expr_,power_Integer], polynomial_, var_Symbol]:=
-	Block[
+	Module[
 		{
 		tmp,
 		maxOrder,
@@ -832,7 +832,7 @@ ReducePolynomialForResidue[Power[expr_,power_Integer], polynomial_, var_Symbol]:
 	
 		
 ReducePolynomialForResidue[Power[expr_,power_Integer], polynomial_, var_Symbol]:=
-	Block[
+	Module[
 		{
 		tmp,
 		maxOrder,
@@ -867,7 +867,7 @@ ClearAll[LinApartU]
 LinApartU[0, var_, polynomial_, {orderOfPolynomial_,listOfConstans_List}]:=orderOfPolynomial
 LinApartU[n_., var_, polynomial_, {orderOfPolynomial_,listOfConstans_List}]:=(-1)^(-n+1)/(-n-1)! D[Log[polynomial],{var,-n}]/;n<0
 LinApartU[n_., var_, polynomial_, {orderOfPolynomial_,listOfConstans_List}]:=
-	Block[
+	Module[
 		{
 		tmp
 		},
@@ -902,7 +902,7 @@ ClearAll[NewtonsIdentity]
 
 (*The function takes the maximum desired degree of the power sum and the constants.*)
 NewtonsIdentity[maxDegree_Integer,constants_List]:=
-	Block[
+	Module[
 		{
 		(*Temporary variable.*)
 		powerSum,
@@ -1006,7 +1006,7 @@ DistributeAll[expr_,var_]:=expr//.Times[a_,b_,c__]/;!FreeQ[a,var]&&!FreeQ[b,var]
 ClearAll[CheckNumericallyIfZero]
 
 CheckNumericallyIfZero[expr_]:=
-	Block[
+	Module[
 	{
 	tmp,vars,ruleVars
 	},
@@ -1046,7 +1046,7 @@ ResidueForLaurentSeries[
 	poleOrder_Integer,
 	{1,constant_List}, var_
 		]:=
-	Block[
+	Module[
 		{
 		barePole=If[True, pole/.Power[expr_,power_Integer]:>expr,pole]
 		},
@@ -1062,7 +1062,7 @@ ResidueForLaurentSeries[
 	poleOrder_Integer,
 	{orderOfPolynomial_Integer,listOfConstans_List}, var_
 		]:=
-	Block[
+	Module[
 		{
 		tmp,tmpTiming,tmpRules,tmpR,tmpS,power,
 		dens,simplifiedDens,ruleDens,
@@ -1258,7 +1258,7 @@ LinApart[expr_, var_, options : OptionsPattern[]]:=
 
 	
 LinApart[expr_, var_, options : OptionsPattern[]]:=
-	Block[
+	Module[
 	{
 	newOptions
 	},
@@ -1290,7 +1290,7 @@ FullForm]\);
 	
 
 LinApart[expr_, var_, options : OptionsPattern[]]:=
-	Block[
+	Module[
 	{
 	newOptions
 	},
@@ -1418,7 +1418,7 @@ SetAttributes[PreProccesorLinApart,Listable]
 		-the optional factorization and or gathering is done;
 		-applies the next stage.
 	*)
-PreProccesorLinApart[expr_, var_, options : OptionsPattern[], 0]:=Block[
+PreProccesorLinApart[expr_, var_, options : OptionsPattern[], 0]:=Module[
 {
 tmp=Expand[expr, var],tmp1,tmp2,
 nums,denoms,quotients,reminders,
@@ -1462,7 +1462,8 @@ PreProccesorLinApart[expr_,var_,options : OptionsPattern[],1]:=expr/;PolynomialQ
 (*This line might be redundant, since PolynomialQ should take care of this case?*)
 PreProccesorLinApart[expr_,var_,options : OptionsPattern[],1]:=expr/;(Denominator[expr]===1||FreeQ[Denominator[expr],var])&&FreeQ[expr,Power[_,Complex[a_/;a<0,_]]]
 PreProccesorLinApart[expr_,var_,options : OptionsPattern[],1]:=expr/;FreeQ[Numerator[expr],var]&&Head[Denominator[expr]]==Plus
-PreProccesorLinApart[expr_, var_, options : OptionsPattern[], 1]:=Block[
+PreProccesorLinApart[expr: num_. Power[poly_, pow_],var_,options : OptionsPattern[],1]:=expr/;FreeQ[num,var]&&IrreduciblePolynomialQ[poly]
+PreProccesorLinApart[expr_, var_, options : OptionsPattern[], 1]:=Module[
 {
 tmp,
 coeff=1,
@@ -1500,7 +1501,7 @@ a,b,tmpList1,tmpList2
 	*)
 PreProccesorLinApart[coeff_,ignoreFrac_,1, var_, options : OptionsPattern[], 2]:=((*Message[LinApartError::nonLinearExpression, coeff*ignoreFrac];*) coeff*ignoreFrac)
 PreProccesorLinApart[coeff_,ignoreFrac_,keepFrac_, var_, options : OptionsPattern[], 2]:=coeff*ignoreFrac*keepFrac/;PolynomialQ[keepFrac,var]&&keepFrac=!=1
-PreProccesorLinApart[coeff_,ignoreFrac_,keepFrac_,var_, options : OptionsPattern[], 2]:=Block[
+PreProccesorLinApart[coeff_,ignoreFrac_,keepFrac_,var_, options : OptionsPattern[], 2]:=Module[
 {
 tmp,
 tmpCoeff=coeff,
@@ -1554,7 +1555,7 @@ a,b,pow
 
 PreProccesorLinApart[coeff_,ignoreFrac_,keepForDivision_,keepFrac_,var_,options : OptionsPattern[],3]:=coeff*ignoreFrac*keepForDivision*keepFrac/;Denominator[keepFrac]===1
 PreProccesorLinApart[coeff_,ignoreFrac_,keepForDivision_,keepFrac_,var_,options : OptionsPattern[],3]:=
-Block[
+Module[
 {
 },
 
@@ -1577,7 +1578,7 @@ ClearAll[mathematicaPartialFraction]
 Options[mathematicaPartialFraction]=Options[LinApart];
 
 mathematicaPartialFraction[coeff_,ignoreFrac_,keepForDivision_,keepFrac_,var_, options : OptionsPattern[]]:=
-Block[
+Module[
 {
 tmp=keepFrac,prefac,
 tmp1a,tmp1a1,tmp1a2,
@@ -1654,7 +1655,7 @@ dummyIndex
 ]/;OptionValue["Method"]==="ExtendedLaurentSeries"
 
 mathematicaPartialFraction[coeff_,ignoreFrac_,keepForDivision_,keepFrac_,var_, options : OptionsPattern[]]:=
-	Block[
+	Module[
 	{
   tmpPolynomialPart,
 
@@ -1758,4 +1759,4 @@ LinApartError::ParallelComputationError="Parallel computation is not possible fo
 LinApartError::varNotSymbol="The variable `1` is not a symbol.";
 LinApartError::wrongOption="Problem with option `1`, OptionName or OptionValue not recognized.";
 LinApartError::nonLinearExpression="The expression is non-linear `1`.";
-LinApartError::factorIsFalse="`1` is an option for Factor but Factor was set to False."
+LinApartError::factorIsFalse="`1` is an option for Factor but Factor was set to False.";
