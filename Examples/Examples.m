@@ -203,8 +203,25 @@ expr//LinApart[#,x]&;//AbsoluteTiming
 expr//Apart[#,x]&;//AbsoluteTiming
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*More basic non-linear examples*)
+
+
+(*This is an example of a polynomial, which is redurcible but cannot be factored so easily.*)
+polynomial=(x-Sqrt[2]I)(x+Sqrt[2]I)//Expand
+
+(*Factor cannot factor it over the integers nor the gaussian integers.*)
+polynomial//Factor
+polynomial//Factor[#,GaussianIntegers->True]&
+
+(*We must use the option Extension to make it happen.*)
+polynomial//Factor[#,Extension->{Sqrt[2]I}]&
+
+(*Apart will not do anything with it.*)
+1/polynomial//Apart[#,x]&
+
+(*But LinApart has an option for these cases.*)
+1/polynomial//LinApart[#,x,Extension->{Sqrt[2]I}]&
 
 
 expr=1/(-3 x-a1)/(5x^2+b01 x -b00)
