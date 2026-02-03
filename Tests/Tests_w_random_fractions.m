@@ -12,11 +12,11 @@ Some are from dr. Sam von Thurenhaut and some are from dr. G\[AAcute]bor Somogyi
 
 (* ::Input::Initialization:: *)
 SetDirectory[NotebookDirectory[]]
-Import["../FastApart.m"];
+Import["../Mathematica/LinApart.m"];
 
 
 (* ::Input::Initialization:: *)
-?FastApart
+?LinApart
 
 
 (* ::Section::Closed:: *)
@@ -26,16 +26,43 @@ Import["../FastApart.m"];
 expr=1/(x+y)/(a x+2)^2;
 
 Apart[expr,x]
-FastApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
 
 expr-%%//Factor//If[#!=0, Interrupt[], #]&
 expr-%%//Factor//If[#!=0, Interrupt[], #]&
 
 
-expr=f x^4/(a x+b)/(a x+c);
+expr=f x^4/(a x+b)/(-a x+c);
 
 Apart[expr,x]
-FastApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
+
+expr-%%//Factor//If[#!=0, Interrupt[], #]&
+expr-%%//Factor//If[#!=0, Interrupt[], #]&
+
+
+expr=f x^4/(a x+b)/(d x+c);
+
+Apart[expr,x]
+LinApart[expr,x]//GatherByDependency[#,x]&
+
+expr-%%//Factor//If[#!=0, Interrupt[], #]&
+expr-%%//Factor//If[#!=0, Interrupt[], #]&
+
+
+expr=f x^4/(a x+b)/(d x+c)^2;
+
+Apart[expr,x]
+LinApart[expr,x]//GatherByDependency[#,x]&
+
+expr-%%//Factor//If[#!=0, Interrupt[], #]&
+expr-%%//Factor//If[#!=0, Interrupt[], #]&
+
+
+expr=f x^4/(a x+b)/(d x+c)^2;
+
+Apart[expr,x]
+LinApart[expr,x]//GatherByDependency[#,x]&
 
 expr-%%//Factor//If[#!=0, Interrupt[], #]&
 expr-%%//Factor//If[#!=0, Interrupt[], #]&
@@ -48,7 +75,7 @@ expr-%%//Factor//If[#!=0, Interrupt[], #]&
 expr=1/(x+1)/(x^2+2)^(5/2);
 
 Apart[expr,x]
-FastApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
 
 expr-%%//Factor//If[#!=0, Interrupt[], #]&
 expr-%%//Factor//If[#!=0, Interrupt[], #]&
@@ -57,7 +84,7 @@ expr-%%//Factor//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 fn1=(x^2+a)^(-3/2)/(x+b)/(x+c);
 
-pf1=FastApart[fn1,x]//Expand
+pf1=LinApart[fn1,x]//Expand
 pf2=Apart[fn1,x]//Expand
 
 fn1-%%//Factor//If[#!=0, Interrupt[], #]&
@@ -67,7 +94,7 @@ fn1-%%//Factor//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 fn1=(x^3+a x -b)^(-3/2)/(x+b)/(x+c);
 
-pf1=FastApart[fn1,x]//GatherByDependency[#,x,Together]&
+pf1=LinApart[fn1,x]//GatherByDependency[#,x,Together]&
 pf2=Apart[fn1,x]//GatherByDependency[#,x,Together]&
 
 fn1-%%//Factor//If[#!=0, Interrupt[], #]&
@@ -86,7 +113,7 @@ This weird thing is caused by the Factoring
 (* ::Input::Initialization:: *)
 fn2=x^(5/7)/(x+1)/(x^2+4x+2)/(x+3)
 
-pf1=FastApart[fn2,x]//GatherByDependency[#,x,Together]&
+pf1=LinApart[fn2,x]//GatherByDependency[#,x,Together]&
 pf2=Apart[fn2,x]//GatherByDependency[#,x,Together]&
 
 fn2-%%//Together//If[#!=0, Interrupt[], #]&
@@ -100,7 +127,7 @@ fn2-%%//Together//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 fn3=x/(x+5)^2+x^2/(x^3+x^2+1)/(x+2)
 
-pf1=FastApart[fn3,x]//GatherByDependency[#,x,Together]&
+pf1=LinApart[fn3,x]//GatherByDependency[#,x,Together]&
 pf2=Apart[fn3,x]//GatherByDependency[#,x,Together]&
 
 fn3-pf1//Together//If[#!=0, Interrupt[], #]&
@@ -114,7 +141,7 @@ fn3-pf2//Together//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 fn4=1/(x+1)/(x^6+I x^3+2y)/Log[x];
 
-pf1=FastApart[fn4,x]//GatherByDependency[#,x,Together]&
+pf1=LinApart[fn4,x]//GatherByDependency[#,x,Together]&
 pf2=Apart[fn4,x]//GatherByDependency[#,x,Together]&
 
 fn4-pf1//Together//If[#!=0, Interrupt[], #]&
@@ -124,7 +151,7 @@ fn4-pf2//Together//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 fn4=1/(x+1)/(x+2)/Log[Sqrt[x]];
 
-pf1=FastApart[fn4,x]//GatherByDependency[#,x,Together]&
+pf1=LinApart[fn4,x]//GatherByDependency[#,x,Together]&
 pf2=Apart[fn4,x]//GatherByDependency[#,x,Together]&
 
 fn4-pf1//Together//If[#!=0, Interrupt[], #]&
@@ -160,7 +187,7 @@ Exponent[x 2^x,x]*)
 (* ::Input::Initialization:: *)
 fn5=Exp[x]/(x^3+1)/(x^2+2)^2
 
-pf1=FastApart[fn5,x]//GatherByDependency[#,x,Together]&
+pf1=LinApart[fn5,x]//GatherByDependency[#,x,Together]&
 pf2=Apart[fn5,x]//GatherByDependency[#,x,Together]&
 
 fn5-pf1//Together//If[#!=0, Interrupt[], #]&
@@ -169,7 +196,7 @@ fn5-pf2//Together//If[#!=0, Interrupt[], #]&
 
 expr=2^x/(x^3+1)/(x^2+2)^2;
 
-FastApart[expr,x]//GatherByDependency[#,x,Together]&
+LinApart[expr,x]//GatherByDependency[#,x,Together]&
 Apart[expr,x]//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -178,7 +205,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x/(x^3+1)/(x^2+2)^2;
 
-FastApart[expr,x]//GatherByDependency[#,x,Together]&
+LinApart[expr,x]//GatherByDependency[#,x,Together]&
 Apart[expr,x]//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -191,7 +218,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 (* ::Input::Initialization:: *)
 expr=1/(x^4+1)/(x+2);
-fn6=FastApart[expr,y]
+fn6=LinApart[expr,y]
 
 fn6-expr//Factor//If[#!=0, Interrupt[], #]&
 
@@ -202,7 +229,7 @@ fn6-expr//Factor//If[#!=0, Interrupt[], #]&
 
 fn7=1/(x^3-a[0])/(x-a[1])
 
-FastApart[fn7,x]//GatherByDependency[#,x,Together]&
+LinApart[fn7,x]//GatherByDependency[#,x,Together]&
 Apart[fn7,x]//GatherByDependency[#,x,Together]&
 
 fn7-%%//Together//If[#!=0, Interrupt[], #]&
@@ -225,7 +252,7 @@ fn7-%%//Together//If[#!=0, Interrupt[], #]&
 
 fn8=1/(sam[1]^4+x^3)/(sam[1]+2)
 
-FastApart[fn8,sam[1]]
+LinApart[fn8,sam[1]]
 Apart[fn8,sam[1]]
 
 fn8-%%//Together//If[#!=0, Interrupt[], #]&
@@ -239,7 +266,7 @@ fn8-%%//Together//If[#!=0, Interrupt[], #]&
 expr=1/(x^3+Log[x])/(x+1)
 
 expr//Apart[#,x]&
-expr//FastApart[#,x]&
+expr//LinApart[#,x]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -249,7 +276,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 expr=1/(x+Sqrt[x])/(x+1)
 
 expr//Apart[#,x]&
-expr//FastApart[#,x]&
+expr//LinApart[#,x]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -259,7 +286,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 expr=1/(x+Sqrt[x])/(x+1)
 
 expr//Apart[#,x]&
-expr//FastApart[#,x, "Factor"->True, "GaussianIntegers"->True]&
+expr//LinApart[#,x, "Factor"->True, "GaussianIntegers"->True]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -268,7 +295,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 expr=1/(x+x^7/2)/(x+1)
 
 expr//Apart[#,x]&
-expr//FastApart[#,x]&
+expr//LinApart[#,x]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -280,7 +307,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/(-x^3+10 x^2+1)/(x+2);
 
-FastApart[expr,x]//GatherByDependency[#,x,Together]&
+LinApart[expr,x]//GatherByDependency[#,x,Together]&
 Apart[expr,x]//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -294,7 +321,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 fn=x^5/(x^2+1)+x^3/(x^3-1)/(x+1);
 
-FastApart[fn,x]//GatherByDependency[#,x,Together]&
+LinApart[fn,x]//GatherByDependency[#,x,Together]&
 Apart[fn,x]//GatherByDependency[#,x,Together]&
 
 fn-%%//Together//If[#!=0, Interrupt[], #]&
@@ -308,7 +335,7 @@ fn-%%//Together//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 fn2=(x^2+3x/5+1)/(x^2+2)^5/(x^3+1)/(Sqrt[x]+Sqrt[y]+2)/x^7/Log[x]+x/(y+1)/(y+2)
 
-FastApart[fn2,x]//GatherByDependency[#,x,Together]&
+LinApart[fn2,x]//GatherByDependency[#,x,Together]&
 Apart[fn2,x]//GatherByDependency[#,x,Together]&
 
 fn2-%%//Together//If[#!=0, Interrupt[], #]&
@@ -322,7 +349,7 @@ fn2-%%//Together//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 fn3=1/Log[1/(x^3+3)/(x+2)]/(x^2+x+1)/(x^5+2)
 
-FastApart[fn3,x]//GatherByDependency[#,x,Together]&
+LinApart[fn3,x]//GatherByDependency[#,x,Together]&
 Apart[fn3,x]//GatherByDependency[#,x,Together]&
 
 fn3-%%//Together//If[#!=0, Interrupt[], #]&
@@ -335,7 +362,7 @@ fn3-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=I/(x-1.2)^1.2/(x^3+x-b)^(1/2)/(x^2-c)^I;
 
-expr//FastApart[#,x]&//Expand
+expr//LinApart[#,x]&//Expand
 expr//Apart[#,x]&
 
 expr-%%//Rationalize//Together//If[#!=0, Interrupt[], #]&
@@ -348,7 +375,7 @@ expr-%%//Rationalize//Together//If[#!=0, Interrupt[], #]&
 
 expr=(x^(3/2) Sqrt[-b+x] Sqrt[-c+x])/((a-b)^2 (a-c)^2 (-a+x^2+b x))
 
-expr//FastApart[#,x]&//Expand
+expr//LinApart[#,x]&//Expand
 expr//Apart[#,x]&
 
 expr-%%//Factor//If[#!=0, Interrupt[], #]&
@@ -357,7 +384,7 @@ expr-%%//Factor//If[#!=0, Interrupt[], #]&
 
 expr=x^2/(-c+x^3)^2;
 
-FastApart[expr,x]//Expand
+LinApart[expr,x]//Expand
 Apart[expr,x]//Expand
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -366,7 +393,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^1.5/(x-a)^2/(x^3-b)^(1/2)/(x^2-c)^1.5;
 
-expr//FastApart[#,x]&//Expand
+expr//LinApart[#,x]&//Expand
 expr//Apart[#,x]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -379,7 +406,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/(x^2+x-a)^2/(x^4-b)^(1/2)/(x^3-c)^pow/(x^2-d)^(a+b)
 
-expr//FastApart[#,x]&//Expand
+expr//LinApart[#,x]&//Expand
 expr//Apart[#,x]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -393,7 +420,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 expr=x^b/((1+x^3)(2-x));
 
-FastApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
 
 expr-%//Together//If[#!=0, Interrupt[], #]&
 
@@ -404,7 +431,7 @@ expr-%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/((1+x)(2-x-x^2)(3+x^3)^(f[x]^x))
 
-FastApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
 %-expr//Simplify//If[#!=0, Interrupt[], #]&
 
 
@@ -415,8 +442,8 @@ FastApart[expr,x]//GatherByDependency[#,x]&
 (* ::Input::Initialization:: *)
 expr=1/((1+x^3)(2-x-x^2)(6+2x)^(2+a[2]));
 
-FastApart[expr,x]//GatherByDependency[#,x]&
-FastApart[expr,x,"Factor"->True]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x,"Factor"->True]//GatherByDependency[#,x]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -425,8 +452,8 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 expr=1/((1-x^3)(2+x-x^2)(6+2x)^(2+I));
 
-FastApart[expr,x]//GatherByDependency[#,x]&
-FastApart[expr,x,"Factor"->True]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x,"Factor"->True]//GatherByDependency[#,x]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -439,7 +466,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 expr=1/((1-x^3)(2-x^2)(3-x^2)^(1/2))
 
-FastApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
 Apart[expr,x]//GatherByDependency[#,x]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -449,7 +476,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 expr=x^15/((1-x^3)(2-x^2)(3-x^2)^(1/2))
 
-FastApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
 Apart[expr,x]//GatherByDependency[#,x]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -463,7 +490,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 expr=x^x/((1-x^2)(2+x^3)^-0.5)//Expand
 
-FastApart[expr,x]
+LinApart[expr,x]
 
 expr-%//Together//If[#!=0, Interrupt[], #]&
 
@@ -475,7 +502,7 @@ expr-%//Together//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 expr=G[0,x/(x^2+1)]/(x^3+1)/(x^2+x+2)
 
-FastApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
 
 expr-%//Together//If[#!=0, Interrupt[], #]&
 
@@ -486,7 +513,7 @@ expr-%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/((1-x^2) (2+x-x^3) (3-x)^(-1/2))
 
-FastApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
 Apart[expr,x]//GatherByDependency[#,x]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -495,7 +522,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/((1+x^3) (2+x)^(-1/2))
 
-FastApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
 Apart[expr,x]//GatherByDependency[#,x]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -513,7 +540,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 expr=1/((1-x^3) (2+x-x^2) (3-x^2)^(-2))
 
-FastApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
 Apart[expr,x]//GatherByDependency[#,x]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -531,7 +558,7 @@ expr2=1/( (2+x-x^5) (3-x^2)^(I-3/2))
 
 (* ::Input::Initialization:: *)
 (* In this case, the 3/2 power is not decomposed *)
-FastApart[expr1,x]//GatherByDependency[#,x]&
+LinApart[expr1,x]//GatherByDependency[#,x]&
 Apart[expr1,x]//GatherByDependency[#,x]&
 
 expr1-%%//Together//If[#!=0, Interrupt[], #]&
@@ -540,7 +567,7 @@ expr1-%%//Together//If[#!=0, Interrupt[], #]&
 
 (* ::Input::Initialization:: *)
 (* In this case, the 3/2 power is not decomposed *)
-FastApart[expr2,x]//GatherByDependency[#,x]&
+LinApart[expr2,x]//GatherByDependency[#,x]&
 Apart[expr2,x]//GatherByDependency[#,x]&
 
 expr2-%%//Together//If[#!=0, Interrupt[], #]&
@@ -554,7 +581,7 @@ expr2-%%//Together//If[#!=0, Interrupt[], #]&
 (* ::Input::Initialization:: *)
 expr=Log[x](1/((1+x-x^5)(2-x^3))+G[0,1,x]/Log[x])
 
-FastApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
 Apart[expr,x]//GatherByDependency[#,x]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -572,7 +599,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 (* In this case, the 3/2 power is not decomposed *)
 expr=x/((1-x^2) (2-x^3-a^2)^(3/2) (3-x)^(b^2+2(a+1/2)+(b+3)^3))
 
-FastApart[expr,x]//GatherByDependency[#,x,Together]&
+LinApart[expr,x]//GatherByDependency[#,x,Together]&
 Apart[expr,x]//GatherByDependency[#,x,Together]&
 
 expr-%%//Simplify//If[#!=0, Interrupt[], #]&
@@ -585,7 +612,7 @@ expr-%%//Simplify//If[#!=0, Interrupt[], #]&
 
 expr=Log[x](b-x)^(4/3) x^11/2/(1-x^2)/(2 a-x^3)/(3-x)^(3/2)/(4-x)^(3/2+a)/(5-x)^(5/2+I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -598,7 +625,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=Log[x] x^11/2+b/(1-x^2)/(2-x^4+a x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -607,7 +634,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=Log[x] x^11/2+I/(1-x^2)/(2-x^4+a x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -620,7 +647,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=(f-x)^(1/2+4a[1]) (d-x^3)^(2+3I) (c-x^2)^1.2 (b-x)^(1/3) x^(11/2) Log[x]Sin[x]/(a-x^2)/(b-a x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -641,7 +668,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -650,7 +677,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -659,7 +686,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^3/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -668,7 +695,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(1/2)/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -677,7 +704,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2)/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -690,7 +717,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^I/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -699,7 +726,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(3+I)/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -708,7 +735,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(3/2+I)/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -717,7 +744,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+I)/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -726,7 +753,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3 I)/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -735,7 +762,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3/2 I)/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -744,7 +771,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3/2 (2/3+I))/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -757,7 +784,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^a/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -766,7 +793,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(1+a)/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -775,7 +802,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(1/2+a)/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -784,7 +811,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+a)/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -793,7 +820,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3 a)/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -802,7 +829,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3/2 a)/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -811,7 +838,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3/2 (2/3+a))/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -820,7 +847,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3/2 (2/3+a)+Log[x])/(a-x^2)/(c+x-x^3)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -837,7 +864,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/x^(1/4)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -846,7 +873,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -855,7 +882,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^3/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -864,7 +891,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(1/2)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -873,7 +900,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -886,7 +913,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^I/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -895,7 +922,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(3+I)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -904,7 +931,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(3/2+I)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -913,7 +940,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+I)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -922,7 +949,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3 I)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -931,7 +958,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3/2 I)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -940,7 +967,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3/2 (2/3+I))/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -953,7 +980,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^a/x^(1/4)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -962,7 +989,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(1+a)/x^(1/4)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -971,7 +998,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(1/2+a)/x^(1/4)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -980,7 +1007,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+a)/x^(1/4)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -989,7 +1016,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3 a)/x^(1/4)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -998,7 +1025,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3/2 a)/x^(1/4)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1007,7 +1034,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3/2 (2/3+a))/x^(1/4)/(a-x^2)^2/(c+x-x^3)^(1/2)/(3-x)^(5/2)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1024,7 +1051,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/x^(1/4+I)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1033,7 +1060,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1042,7 +1069,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^3/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1051,7 +1078,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(1/2)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1060,7 +1087,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1072,7 +1099,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 
 expr=x^I/x^(1/4+I)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1081,7 +1108,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(3+I)/x^(1/4+I)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1090,7 +1117,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(3/2+I)/x^(1/4+I)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1099,7 +1126,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+I)/x^(1/4+I)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1108,7 +1135,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3 I)/x^(1/4+I)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1117,7 +1144,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3/2 I)/x^(1/4+I)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1126,7 +1153,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3/2 (2/3+I))/x^(1/4+I)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1139,7 +1166,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^a/x^(1/4+b)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1148,7 +1175,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(1+a)/x^(1/4+b)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1157,7 +1184,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(1/2+a)/x^(1/4+b)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1166,7 +1193,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+a)/x^(1/4+b)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1175,7 +1202,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3 a)/x^(1/4+b)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1184,7 +1211,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3/2 a)/x^(1/4+b)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1193,7 +1220,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^(5/2+3/2 (2/3+a))/x^(1/4+b)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)/(3-x^3)^(5/2+3I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1206,7 +1233,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/(Log[x]+x)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1215,7 +1242,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/(1+Log[x]x)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1224,7 +1251,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/(Sin[x]+x)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1233,7 +1260,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=a/Log[x]/x^2/(1-x^2)^2/(2-a x-x^3)^(1/2 I)
 
-FastApart[expr,x]//GatherByDependency[#,x,Together]&
+LinApart[expr,x]//GatherByDependency[#,x,Together]&
 Apart[expr,x]//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1242,7 +1269,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/(a+x^3)^(1/3)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1251,7 +1278,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/(1+x^2)/(1-x^2)^2/(2-a x-x^3)^(1/2 I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1260,7 +1287,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=G[0,1,x]/(1-x^2)^2/(2-a x-x^3)^(1/2 I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1269,7 +1296,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=a G[0,1,x](1+x^4)Cos[(1-x)^(1/2)]Sin[x]/Log[x]/(1+x^2)/(1+x^3)^(1/3)/(Log[x]+x)/(1-x)/(2-x)+G[0,1,x]
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1282,7 +1309,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/Log[x]/(1-x)/(a-x^2)^2/(2-a x-x^3)^(1/2+I+a)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1291,7 +1318,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/Log[x]/(1-x)/(a-x^2)^2/(2-a x-x^3)^(1.2+a)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1300,7 +1327,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/Log[x]/(1-x)/(a-x^2)^2/(2-a x-x^3)^(1.2+I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1309,7 +1336,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/Log[x]/(1-x)/(a-x^2)^2/(2-a x-x^3)^(1.2+2.1a+3.1I)
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1318,7 +1345,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/Log[x]/(1-x)/(a-x^2)^2/(2-a x-x^3)^(2+a+2(b+1.2))
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1327,7 +1354,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/Log[x]/(1-x)/(a-x^2)^2/(2-a x-x^3)^(2+I+2(I+1.2))
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1336,7 +1363,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/Log[x]/(1-x)/(a-x^2)^2/(2-a x-x^3)^(2+I+2b(I+1.2 a)+I(2+b))
 
-expr//FastApart[#,x]&//GatherByDependency[#,x,Together]&
+expr//LinApart[#,x]&//GatherByDependency[#,x,Together]&
 expr//Apart[#,x]&//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1349,7 +1376,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x/(1-x^2+a x)^(1-I)
 
-FastApart[expr,x]//GatherByDependency[#,x,Together]&
+LinApart[expr,x]//GatherByDependency[#,x,Together]&
 Apart[expr,x]//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1358,7 +1385,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x/(1-x^2+a x)^(1-a);
 
-FastApart[expr,x]//GatherByDependency[#,x,Together]&
+LinApart[expr,x]//GatherByDependency[#,x,Together]&
 Apart[expr,x]//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1367,20 +1394,20 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x/(1-x^2+a x)^(1-"a");
 
-FastApart[expr,x]//GatherByDependency[#,x,Together]&
+LinApart[expr,x]//GatherByDependency[#,x,Together]&
 Apart[expr,x]//GatherByDependency[#,x,Together]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
 expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 
-(* ::Section:: *)
+(* ::Section::Closed:: *)
 (*fn39:: Factored polynomial under a common power;*)
 
 
 expr=1/((1-x+a x)(2-x))^(2-I)
 
-FastApart[expr,x]
+LinApart[expr,x]
 Apart[expr,x]
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1389,7 +1416,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x/((1-x)(2-x))^(1-I)
 
-FastApart[expr,x]
+LinApart[expr,x]
 Apart[expr,x]
 
 expr-%%//Simplify//If[#!=0, Interrupt[], #]&
@@ -1398,7 +1425,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x Log[x]/((1-x)(2-x))^(1-I)/(Log[x]-x+2a)^(2+I)/(Log[x]x+2a)^(2+I)/(x+2a x+1+nb)/(x^2+1)/(3+x)^(2/3)
 
-FastApart[expr,x]
+LinApart[expr,x]
 Apart[expr,x]
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1407,7 +1434,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x/((1-x)(2-x))^(2-a)
 
-FastApart[expr,x]
+LinApart[expr,x]
 Apart[expr,x]
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1416,7 +1443,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^2/((1-x)(2-x))^(1-I)
 
-FastApart[expr,x]
+LinApart[expr,x]
 Apart[expr,x]
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1425,7 +1452,7 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=x^5/((1-x)(2-x))^(1-I)
 
-FastApart[expr,x]
+LinApart[expr,x]
 Apart[expr,x]
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
@@ -1438,16 +1465,19 @@ expr-%%//Together//If[#!=0, Interrupt[], #]&
 
 expr=1/((1+x)(2+x-x^2)(3+x^3)^(f[x]^x))
 
-FastApart[expr,x]
+LinApart[expr,x]
 %-expr//Simplify//If[#!=0, Interrupt[], #]&
 
 
 (* ::Input::Initialization:: *)
 expr=1/((1+x^3)(2+x-x^2)(6+2x)^(2+I));
 
-FastApart[expr,x]//GatherByDependency[#,x]&
+LinApart[expr,x]//GatherByDependency[#,x]&
 
 expr-%%//Together//If[#!=0, Interrupt[], #]&
+
+
+
 
 
 
