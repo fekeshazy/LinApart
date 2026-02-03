@@ -383,7 +383,7 @@ NormalizeDenominators[denominator_, var_]:=
 	]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Helper functions for LinApart2*)
 
 
@@ -1028,7 +1028,7 @@ CheckNumericallyIfZero[expr_]:=
 	]
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*ResidueForLaurentSeries*)
 
 
@@ -1741,7 +1741,7 @@ mathematicaPartialFraction[coeff_,ignoreFrac_,keepForDivision_,keepFrac_,var_, o
 	]/;OptionValue["Method"]==="Euclidean"
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Text of messages*)
 
 
@@ -1750,8 +1750,8 @@ LinApart::usage =
 LinApart[expression, variable_Symbol, Options] 
 The function gives the partial fraction decomposition of fractions with linear denominators in the chosen variable; the variable must be a symbol. 
 Options: 
-	-Factor->True/False: factor each additive term in the expression; the default value is False.
-	-GaussianIntegers->True/False: factorization of the input expression is performed over the Gaussian integers; the default value is False.
+	-Factor->True/False: factor each additive term in the expression; the default value is True.
+	-GaussianIntegers->True/False: factorization of the input expression is performed over the Gaussian integers; the default value is True.
 	-Extension->{a[1], a[2], ...}: option for Factor; factors a polynomial allowing coefficients that are rational combinations of the algebraic numbers a[i].
 	-Parallel->{True/False, NumberOfCores, TemporaryPath}: calculate the residues on multiple cores during the extended Laurent-series method.
 	-PreCollect->True/False: gather by every unique structure in the expression; the default value is False.
