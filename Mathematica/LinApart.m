@@ -1,18 +1,18 @@
 (* ::Package:: *)
 
-BeginPackage["FastApart`"]
+BeginPackage["LinApart`"]
 
 
 (* ::Section:: *)
-(*FastApart*)
+(*LinApart*)
 
 
 (*
-This file contains the FastApart package, based on the articles arXiv.2405.20130 and ... .
+This file contains the LinApart package, based on the articles arXiv.2405.20130 and ... .
 
 It has four main sections.
 	1. Helper functions: it contains all of smaller functions used in the main routine.
-	2. FastApart front: it contains the definition fo the front function and input error handling.
+	2. LinApart front: it contains the definition fo the front function and input error handling.
 	3. PreProcessor: it conaint the function called PreProcessor, which manipulates the input so 
 	the formula (eq 11) presented in the article can be applied. 
 	4. Text of messages: it contains the definition of the error/warning messages and the 
@@ -26,13 +26,13 @@ It has four main sections.
 
 Print[
 
-	"(****** FastApart 2.0 ******)"
+	"(****** LinApart 2.0 ******)"
 	
 ];
 
 
 (* ::Subsection::Closed:: *)
-(*Helper functions for FastApart*)
+(*Helper functions for LinApart*)
 
 
 (* ::Subsubsection::Closed:: *)
@@ -326,7 +326,7 @@ SeparateFrac[expr_,var_]:=Module[
 tmp,
 keepFrac,
 ignoreFrac,
-FastApartOne,
+LinApartOne,
 a,b
 },
 
@@ -337,7 +337,7 @@ a,b
 			];
 
 	keepFrac=Cases[
-				FastApartOne[0]*tmp,
+				LinApartOne[0]*tmp,
 				A_^n_./;(PolynomialQ[A,var])&&FreeQ[n,var],
 				1];
 	
@@ -345,7 +345,7 @@ a,b
 	
 	ignoreFrac=tmp/keepFrac;
 	
-	{ignoreFrac,keepFrac}/.FastApartOne[0]->1/.TmpPower[a_,b_]->a^b
+	{ignoreFrac,keepFrac}/.LinApartOne[0]->1/.TmpPower[a_,b_]->a^b
 ]
 
 
@@ -384,7 +384,7 @@ NormalizeDenominators[denominator_, var_]:=
 
 
 (* ::Subsection:: *)
-(*Helper functions for FastApart2*)
+(*Helper functions for LinApart2*)
 
 
 (* ::Subsubsection::Closed:: *)
@@ -859,17 +859,17 @@ ReducePolynomialForResidue[Power[expr_,power_Integer], polynomial_, var_Symbol]:
 
 
 (* ::Subsubsection::Closed:: *)
-(*FastApartU*)
+(*LinApartU*)
 
 
 (*
 Basically this is the S function from the article.
 *)
 
-ClearAll[FastApartU]
-FastApartU[0, var_, polynomial_, {orderOfPolynomial_,listOfConstans_List}]:=orderOfPolynomial
-FastApartU[n_., var_, polynomial_, {orderOfPolynomial_,listOfConstans_List}]:=(-1)^(-n+1)/(-n-1)! D[Log[polynomial],{var,-n}]/;n<0
-FastApartU[n_., var_, polynomial_, {orderOfPolynomial_,listOfConstans_List}]:=
+ClearAll[LinApartU]
+LinApartU[0, var_, polynomial_, {orderOfPolynomial_,listOfConstans_List}]:=orderOfPolynomial
+LinApartU[n_., var_, polynomial_, {orderOfPolynomial_,listOfConstans_List}]:=(-1)^(-n+1)/(-n-1)! D[Log[polynomial],{var,-n}]/;n<0
+LinApartU[n_., var_, polynomial_, {orderOfPolynomial_,listOfConstans_List}]:=
 	Module[
 		{
 		tmp
@@ -1028,7 +1028,7 @@ CheckNumericallyIfZero[expr_]:=
 	]
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*ResidueForLaurentSeries*)
 
 
@@ -1051,7 +1051,7 @@ ResidueForLaurentSeries[
 		]:=
 	Module[
 		{
-		barePole=If[Head[pole]===Power, pole/.Power[expr_,power_Integer]:>expr, pole]
+		barePole=If[Head[pole]===Power, pole/.Power[(a_.+b_. var), power_Integer]:>a+b var, pole]
 		},
 		
 			1/barePole^poleOrder (1/(multiplicity-poleOrder)!*
@@ -1113,7 +1113,7 @@ ResidueForLaurentSeries[
 						Binomial[powL, i]*
 							(
 								var^i (-1)^(powL-i)*
-								FastApartU[-poleOrder+powL-i, 
+								LinApartU[-poleOrder+powL-i, 
 											var,
 											barePole,
 											{orderOfPolynomial, Reverse[listOfConstans]}
@@ -1130,7 +1130,7 @@ ResidueForLaurentSeries[
 
 
 (* ::Subsection::Closed:: *)
-(*FastApart function*)
+(*LinApart function*)
 
 
 												(*Front function*)
@@ -1140,12 +1140,12 @@ ResidueForLaurentSeries[
 		no crucial mistakes like the number of arguments, options and their values.
 		*)
 
-ClearAll[FastApart]
+ClearAll[LinApart]
 
 		(*
 		Setting the default OptionValues.
 		*)
-Options[FastApart]=
+Options[LinApart]=
 	{"Method"->"ExtendedLaurentSeries",
 	
 	 "Factor"->True,
@@ -1171,7 +1171,7 @@ OptionPreCollectCases={True,False};
 OptionLanguageCases={"Mathematica","C"}; (*Obsolute cuz' we removed the C version; it is now standalone.*)
 
 		(*Setting the properties*)
-SetAttributes[FastApart,Listable] (*This can lead to isses, if applied on SeriesData structures. MUST FIX!!
+SetAttributes[LinApart,Listable] (*This can lead to isses, if applied on SeriesData structures. MUST FIX!!
 
 									I thought about this and I leave it here, cuz' this is
 									Mathematica's fault and even the buit-in functions can behave weridly
@@ -1192,54 +1192,54 @@ SetAttributes[FastApart,Listable] (*This can lead to isses, if applied on Series
 		Thus we must check manually.
 		*)
 		
-FastApart[expr_, var_, options : OptionsPattern[]]:=
+LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
-	Message[FastApartError::wrongOption,
+	Message[LinApartError::wrongOption,
 								"Method"
 							];
 	expr
 	)/;!MemberQ[OptionMethodCases,OptionValue["Method"]]
 
 	
-FastApart[expr_, var_, options : OptionsPattern[]]:=
+LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
-	Message[FastApartError::wrongOption,
+	Message[LinApartError::wrongOption,
 								"Factor"
 							];
 	expr
 	)/;!MemberQ[OptionFactorCases,OptionValue["Factor"]]
 
-FastApart[expr_, var_, options : OptionsPattern[]]:=
+LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
 	Message[
-		FastApartError::wrongOption,
+		LinApartError::wrongOption,
 		"GaussianIntegers"
 	];
 	expr
 	)/;!MemberQ[OptionGaussianIntegersCases,OptionValue["GaussianIntegers"]]
 
-FastApart[expr_, var_, options : OptionsPattern[]]:=
+LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
 	Message[
-		FastApartError::factorIsFalse,
+		LinApartError::factorIsFalse,
 		"GaussianIntegers"
 	];
 	expr
 	)/;(OptionValue["GaussianIntegers"]&&!OptionValue["Factor"])
 	
-FastApart[expr_, var_, options : OptionsPattern[]]:=
+LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
 	Message[
-		FastApartError::factorIsFalse,
+		LinApartError::factorIsFalse,
 		"Extension"
 	];
 	expr
 	)/;(OptionValue["Extension"]=!={}&&!OptionValue["Factor"])
 			
-FastApart[expr_, var_, options : OptionsPattern[]]:=
+LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
 	Message[
-		FastApartError::wrongOption,
+		LinApartError::wrongOption,
 		"Extension"
 	];
 	expr
@@ -1248,10 +1248,10 @@ FastApart[expr_, var_, options : OptionsPattern[]]:=
 
 
 
-FastApart[expr_, var_, options : OptionsPattern[]]:=
+LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
 	Message[
-		FastApartError::wrongOption,
+		LinApartError::wrongOption,
 		"Parallel"
 	];
 	expr
@@ -1260,7 +1260,7 @@ FastApart[expr_, var_, options : OptionsPattern[]]:=
 				Head[OptionValue["Parallel"][[3]]]!=String)
 
 	
-FastApart[expr_, var_, options : OptionsPattern[]]:=
+LinApart[expr_, var_, options : OptionsPattern[]]:=
 	Module[
 	{
 	newOptions
@@ -1268,7 +1268,7 @@ FastApart[expr_, var_, options : OptionsPattern[]]:=
 	
 	
 	Message[
-		FastApartError::noParallelKernels
+		LinApartError::noParallelKernels
 	];
 	
 	newOptions={options}/.\!\(\*
@@ -1287,19 +1287,19 @@ ShowSpecialCharacters->False,
 ShowStringCharacters->True,
 NumberMarks->True],
 FullForm]\);
-	FastApart[expr, var, ##]&@@newOptions
+	LinApart[expr, var, ##]&@@newOptions
 	
 	]/;(OptionValue["Parallel"][[1]]&&$KernelCount===0)
 	
 
-FastApart[expr_, var_, options : OptionsPattern[]]:=
+LinApart[expr_, var_, options : OptionsPattern[]]:=
 	Module[
 	{
 	newOptions
 	},
 	
 	Message[
-		FastApartError::ParallelComputationError
+		LinApartError::ParallelComputationError
 	];
 	
 	newOptions={options}/.\!\(\*
@@ -1318,24 +1318,24 @@ ShowSpecialCharacters->False,
 ShowStringCharacters->True,
 NumberMarks->True],
 FullForm]\);
-	FastApart[expr, var, ##]&@@newOptions
+	LinApart[expr, var, ##]&@@newOptions
 	
 	]/;(OptionValue["Parallel"][[1]]&&OptionValue["Method"]=!="ExtendedLaurentSeries")
 
 
-FastApart[expr_, var_, options : OptionsPattern[]]:=
+LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
 	Message[
-		FastApartError::wrongOption,
+		LinApartError::wrongOption,
 		"PreCollect"
 	];
 	expr
 	)/;!MemberQ[OptionPreCollectCases,OptionValue["PreCollect"]]
 	
-FastApart[expr_, var_, options : OptionsPattern[]]:=
+LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
 	Message[
-		FastApartError::wrongOption,
+		LinApartError::wrongOption,
 		"ApplyAfterPreCollect"
 	];
 	expr
@@ -1347,18 +1347,18 @@ FastApart[expr_, var_, options : OptionsPattern[]]:=
 	
 	
 	
-FastApart[expr_, var_, options : OptionsPattern[]]:=
+LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
 	Message[
-		FastApartError::wrongOption,
+		LinApartError::wrongOption,
 		"Language"
 	];
 	expr
 	)/;!MemberQ[OptionLanguageCases,OptionValue["Language"]]
 	
-FastApart[expr_, var_, options : OptionsPattern[]]:=
+LinApart[expr_, var_, options : OptionsPattern[]]:=
 	(
-	Message[FastApartError::varNotSymbol,var];
+	Message[LinApartError::varNotSymbol,var];
 	expr
 	)/;Head[var]=!=Symbol
 	
@@ -1366,11 +1366,11 @@ FastApart[expr_, var_, options : OptionsPattern[]]:=
 	
 	
 		(*If every option value is good proceed to Preprocessing.*)
-FastApart[expr_, var_, options : OptionsPattern[]]:=Apart[expr,var]/;OptionValue["Method"]==="EquationSystem"
-FastApart[expr_, var_, options : OptionsPattern[]]:=PreProccesorFastApart[expr, var, options, 0]/;Head[var]===Symbol
+LinApart[expr_, var_, options : OptionsPattern[]]:=Apart[expr,var]/;OptionValue["Method"]==="EquationSystem"
+LinApart[expr_, var_, options : OptionsPattern[]]:=PreProccesorLinApart[expr, var, options, 0]/;Head[var]===Symbol
 
 		(*This is a new function might cause an error stating it reached the limit of recursion for lower versions.*)
-FastApart[arg___]:=Null/;CheckArguments[FastApart[arg],2]
+LinApart[arg___]:=Null/;CheckArguments[LinApart[arg],2]
 
 
 (* ::Subsection::Closed:: *)
@@ -1406,22 +1406,22 @@ FastApart[arg___]:=Null/;CheckArguments[FastApart[arg],2]
 			-language choose
 	*)
 	
-ClearAll[PreProccesorFastApart]
+ClearAll[PreProccesorLinApart]
 
 	(*
-	Setting the default OptionValues; which are inherited from FastApart.
+	Setting the default OptionValues; which are inherited from LinApart.
 	*)
-Options[PreProccesorFastApart]=Options[FastApart];
+Options[PreProccesorLinApart]=Options[LinApart];
 
 	(*Setting the properties*)
-SetAttributes[PreProccesorFastApart,Listable]
+SetAttributes[PreProccesorLinApart,Listable]
 
 	(*
 	During the 0. stage:
 		-the optional factorization and or gathering is done;
 		-applies the next stage.
 	*)
-PreProccesorFastApart[expr_, var_, options : OptionsPattern[], 0]:=Module[
+PreProccesorLinApart[expr_, var_, options : OptionsPattern[], 0]:=Module[
 {
 tmp=Expand[expr, var],tmp1,tmp2,
 nums,denoms,quotients,reminders,
@@ -1443,7 +1443,7 @@ a,b,n,pow
 			tmp
 		];
 	
-	tmp=PreProccesorFastApart[tmp,var,options,1]
+	tmp=PreProccesorLinApart[tmp,var,options,1]
 ]
 	
 	(*
@@ -1459,14 +1459,14 @@ a,b,n,pow
 		-selects the multiplicative terms with complex/real/non-number powers
 		-factors out the appropiate power from terms with rational powers
 	*)
-PreProccesorFastApart[expr_Plus,var_,options : OptionsPattern[],1]:=PreProccesorFastApart[#,var,options,1]&/@expr
-PreProccesorFastApart[expr_,var_,options : OptionsPattern[],1]:=expr/;FreeQ[expr,var]
-PreProccesorFastApart[expr_,var_,options : OptionsPattern[],1]:=expr/;PolynomialQ[expr,var]
+PreProccesorLinApart[expr_Plus,var_,options : OptionsPattern[],1]:=PreProccesorLinApart[#,var,options,1]&/@expr
+PreProccesorLinApart[expr_,var_,options : OptionsPattern[],1]:=expr/;FreeQ[expr,var]
+PreProccesorLinApart[expr_,var_,options : OptionsPattern[],1]:=expr/;PolynomialQ[expr,var]
 (*This line might be redundant, since PolynomialQ should take care of this case?*)
-PreProccesorFastApart[expr_,var_,options : OptionsPattern[],1]:=expr/;(Denominator[expr]===1||FreeQ[Denominator[expr],var])&&FreeQ[expr,Power[_,Complex[a_/;a<0,_]]]
-PreProccesorFastApart[expr_,var_,options : OptionsPattern[],1]:=expr/;FreeQ[Numerator[expr],var]&&Head[Denominator[expr]]==Plus
-PreProccesorFastApart[expr: num_. Power[poly_, pow_],var_,options : OptionsPattern[],1]:=expr/;FreeQ[num,var]&&IrreduciblePolynomialQ[poly]
-PreProccesorFastApart[expr_, var_, options : OptionsPattern[], 1]:=Module[
+PreProccesorLinApart[expr_,var_,options : OptionsPattern[],1]:=expr/;(Denominator[expr]===1||FreeQ[Denominator[expr],var])&&FreeQ[expr,Power[_,Complex[a_/;a<0,_]]]
+PreProccesorLinApart[expr_,var_,options : OptionsPattern[],1]:=expr/;FreeQ[Numerator[expr],var]&&Head[Denominator[expr]]==Plus
+PreProccesorLinApart[expr: num_. Power[poly_, pow_],var_,options : OptionsPattern[],1]:=expr/;FreeQ[num,var]&&IrreduciblePolynomialQ[poly]
+PreProccesorLinApart[expr_, var_, options : OptionsPattern[], 1]:=Module[
 {
 tmp,
 coeff=1,
@@ -1486,7 +1486,7 @@ a,b,tmpList1,tmpList2
 	(*Separating variable dependent part to ingnore.*)
 	{ignoreFrac,keepFrac}=SeparateFrac[tmp,var];
 
-		PreProccesorFastApart[coeff,ignoreFrac,keepFrac,var,options,2]
+		PreProccesorLinApart[coeff,ignoreFrac,keepFrac,var,options,2]
 ]
 
 	(*
@@ -1502,9 +1502,9 @@ a,b,tmpList1,tmpList2
 			with which we will deal in the mathematicaPartialFraction function with the help of the
 			ReplaceRemainedStructure function.
 	*)
-PreProccesorFastApart[coeff_,ignoreFrac_,1, var_, options : OptionsPattern[], 2]:=((*Message[FastApartError::nonLinearExpression, coeff*ignoreFrac];*) coeff*ignoreFrac)
-PreProccesorFastApart[coeff_,ignoreFrac_,keepFrac_, var_, options : OptionsPattern[], 2]:=coeff*ignoreFrac*keepFrac/;PolynomialQ[keepFrac,var]&&keepFrac=!=1
-PreProccesorFastApart[coeff_,ignoreFrac_,keepFrac_,var_, options : OptionsPattern[], 2]:=Module[
+PreProccesorLinApart[coeff_,ignoreFrac_,1, var_, options : OptionsPattern[], 2]:=((*Message[LinApartError::nonLinearExpression, coeff*ignoreFrac];*) coeff*ignoreFrac)
+PreProccesorLinApart[coeff_,ignoreFrac_,keepFrac_, var_, options : OptionsPattern[], 2]:=coeff*ignoreFrac*keepFrac/;PolynomialQ[keepFrac,var]&&keepFrac=!=1
+PreProccesorLinApart[coeff_,ignoreFrac_,keepFrac_,var_, options : OptionsPattern[], 2]:=Module[
 {
 tmp,
 tmpCoeff=coeff,
@@ -1518,7 +1518,7 @@ a,b,pow
 },	
 	
 	(*If there is a denominator with root 0, it gaves a dummy root.*)
-	tmpKeepFrac=keepFrac(*/.Power[var,pow_.]/;pow<0:>Power[var-FastAparta[0],pow]*);
+	tmpKeepFrac=keepFrac(*/.Power[var,pow_.]/;pow<0:>Power[var-LinAparta[0],pow]*);
 	
 	(*
 	It gets out the non-monomial numerators. These are a remanence from when we factored out the not needed powers.
@@ -1551,13 +1551,13 @@ a,b,pow
 	
 	If[tmpDenExp<=tmpNumExp,
 		pow=tmpDenExp-tmpNumExp-1;
-		PreProccesorFastApart[tmpCoeff,ignoreFrac,keepForDivision*var^-pow, var^pow tmpKeepFrac, var, options, 3],
-		PreProccesorFastApart[tmpCoeff,ignoreFrac,keepForDivision, tmpKeepFrac, var, options, 3]
+		PreProccesorLinApart[tmpCoeff,ignoreFrac,keepForDivision*var^-pow, var^pow tmpKeepFrac, var, options, 3],
+		PreProccesorLinApart[tmpCoeff,ignoreFrac,keepForDivision, tmpKeepFrac, var, options, 3]
 	]
 ]
 
-PreProccesorFastApart[coeff_,ignoreFrac_,keepForDivision_,keepFrac_,var_,options : OptionsPattern[],3]:=coeff*ignoreFrac*keepForDivision*keepFrac/;Denominator[keepFrac]===1
-PreProccesorFastApart[coeff_,ignoreFrac_,keepForDivision_,keepFrac_,var_,options : OptionsPattern[],3]:=
+PreProccesorLinApart[coeff_,ignoreFrac_,keepForDivision_,keepFrac_,var_,options : OptionsPattern[],3]:=coeff*ignoreFrac*keepForDivision*keepFrac/;Denominator[keepFrac]===1
+PreProccesorLinApart[coeff_,ignoreFrac_,keepForDivision_,keepFrac_,var_,options : OptionsPattern[],3]:=
 Module[
 {
 },
@@ -1576,9 +1576,9 @@ Module[
 ClearAll[mathematicaPartialFraction]	
 
 	(*
-	Setting the default OptionValues; which are inherited from FastApart.
+	Setting the default OptionValues; which are inherited from LinApart.
 	*)
-Options[mathematicaPartialFraction]=Options[FastApart];
+Options[mathematicaPartialFraction]=Options[LinApart];
 
 mathematicaPartialFraction[coeff_,ignoreFrac_,keepForDivision_,keepFrac_,var_, options : OptionsPattern[]]:=
 Module[
@@ -1745,9 +1745,9 @@ mathematicaPartialFraction[coeff_,ignoreFrac_,keepForDivision_,keepFrac_,var_, o
 (*Text of messages*)
 
 
-FastApart::usage = 
-"FastApart[expression, variable_Symbol] 
-FastApart[expression, variable_Symbol, Options] 
+LinApart::usage = 
+"LinApart[expression, variable_Symbol] 
+LinApart[expression, variable_Symbol, Options] 
 The function gives the partial fraction decomposition of fractions with linear denominators in the chosen variable; the variable must be a symbol. 
 Options: 
 	-Factor->True/False: factor each additive term in the expression; the default value is False.
@@ -1758,12 +1758,12 @@ Options:
 	-ApplyAfterPreCollect -> pure function (e.g. Factor): applies the given function on the variable independent part of each term; the default value is None.
 ";
 
-FastApartError::noParallelKernels="There are no parallel kernels available, proceeding with sequential evaluation.";
-FastApartError::ParallelComputationError="Parallel computation is not possible for this method, proceeding with sequential evaluation.";
-FastApartError::varNotSymbol="The variable `1` is not a symbol.";
-FastApartError::wrongOption="Problem with option `1`, OptionName or OptionValue not recognized.";
-FastApartError::nonLinearExpression="The expression is non-linear `1`.";
-FastApartError::factorIsFalse="`1` is an option for Factor but Factor was set to False.";
+LinApartError::noParallelKernels="There are no parallel kernels available, proceeding with sequential evaluation.";
+LinApartError::ParallelComputationError="Parallel computation is not possible for this method, proceeding with sequential evaluation.";
+LinApartError::varNotSymbol="The variable `1` is not a symbol.";
+LinApartError::wrongOption="Problem with option `1`, OptionName or OptionValue not recognized.";
+LinApartError::nonLinearExpression="The expression is non-linear `1`.";
+LinApartError::factorIsFalse="`1` is an option for Factor but Factor was set to False.";
 
 
 EndPackage[]
