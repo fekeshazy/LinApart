@@ -383,7 +383,7 @@ NormalizeDenominators[denominator_, var_]:=
 	]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Helper functions for LinApart2*)
 
 
@@ -1028,7 +1028,7 @@ CheckNumericallyIfZero[expr_]:=
 	]
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*ResidueForLaurentSeries*)
 
 
@@ -1070,7 +1070,7 @@ ResidueForLaurentSeries[
 		tmp,tmpTiming,tmpRules,tmpR,tmpS,power,
 		dens,simplifiedDens,ruleDens,
 		order,tmpRuleReduction,ruleReduction,
-		barePole=If[Head[pole]===Power, pole/.Power[expr_,power_Integer]/;!FreeQ[expr,x]:>expr, pole],
+		barePole=If[Head[pole]===Power, pole/.Power[expr_,power_Integer]/;!FreeQ[expr,var]:>expr, pole],
 		
 		tmpNum,tmpNumRules,tmpDen
 		},
