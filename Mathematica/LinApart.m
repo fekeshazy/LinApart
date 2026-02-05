@@ -31,7 +31,7 @@ Print[
 ];
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Helper functions for LinApart*)
 
 
@@ -58,7 +58,7 @@ GetExponent[a_. expr_^n_.,var_]:={expr^n,1}/;FreeQ[expr,var]
 GetExponent[a_. expr_^n_.,var_]:={expr,n}/;!FreeQ[expr,var]
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*GatherByDependency*)
 
 
@@ -235,7 +235,7 @@ GatherByDependency[expr_, var_, ApplyFunctionOnIndependent_ : None, ApplyFunctio
         ]
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*GatherByDenominator*)
 
 
@@ -881,7 +881,7 @@ LinApartU[n_., var_, polynomial_, {orderOfPolynomial_,listOfConstans_List}]:=
 	]/;n>0
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*NewtonsIdentity*)
 
 
@@ -989,7 +989,7 @@ NewtonsIdentity::constantsEmptyList="The second argument must not be an empty li
 NewtonsIdentity::noRuleMatch="There were no rules matching the gives input. The first argument (`1`) should be the degree of the highest desired power sum, while the second (`2`) the list of constants.";
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*DistributeAll*)
 
 
@@ -1002,7 +1002,7 @@ DistributeAll[expr_,var_]:=expr//.Times[a_,b_,c__]/;!FreeQ[a,var]&&!FreeQ[b,var]
 										Times[Distribute[Times[a,b],Plus,Times],c]
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*CheckNumericallyIfZero*)
 
 
@@ -1118,7 +1118,7 @@ ResidueForLaurentSeries[
 											barePole,
 											{orderOfPolynomial, Reverse[listOfConstans]}
 									]
-							)//Apart[#,x]&
+							)//Apart[#,var]&
 							
 						,{i,0,powL}
 					]
