@@ -12,7 +12,7 @@ If you find this routine useful in your research please consider citing the arti
 
 1. Clone the repository:
 ```
-git clone https://github.com/your-username/LinApart.git
+git clone https://github.com/fekeshazy/LinApart.git
 ```
 2. Navigate to the project directory:
 ```
