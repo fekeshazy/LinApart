@@ -58,7 +58,7 @@ GetExponent[a_. expr_^n_.,var_]:={expr^n,1}/;FreeQ[expr,var]
 GetExponent[a_. expr_^n_.,var_]:={expr,n}/;!FreeQ[expr,var]
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*GatherByDependency*)
 
 
@@ -235,7 +235,7 @@ GatherByDependency[expr_, var_, ApplyFunctionOnIndependent_ : None, ApplyFunctio
         ]
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*GatherByDenominator*)
 
 
@@ -519,7 +519,7 @@ Module[
 ]
 
 
-(* ::Subsubsection::Closed:: *)
+(* ::Subsubsection:: *)
 (*Polynomial reduction modulo a polynomial*)
 
 
@@ -587,160 +587,6 @@ This is a weird helper function for the reduction. It gives the maximal order, w
 
 
 
-ClearAll[GetMaxOrderForReduction]
-	
-GetMaxOrderForReduction[Power[var_Symbol,power_Integer], polynomial_Plus, var_Symbol]:=
-	Module[
-		{
-		},
-		
-			power
-			
-	]/;PolynomialQ[polynomial,var]
-	
-GetMaxOrderForReduction[Power[expr_,power_], polynomial_Plus, var_Symbol]:=
-	Module[
-		{
-		maxOrderOfExpression,
-		maxOrderOfPolyomial
-		},
-		
-			maxOrderOfPolyomial=polynomial//Exponent[#,var]&;
-			
-			(maxOrderOfPolyomial-1)*Abs[power]
-			
-	]/;PolynomialQ[expr,var]&&PolynomialQ[polynomial,var]
-	
-GetMaxOrderForReduction[expr_Times, polynomial_Plus, var_Symbol]:=
-	Module[
-		{
-		tmpNumerator,
-		tmpDenominator,
-		
-		maxOrderOfNumerator,
-		maxOrderOfDenominator,
-		maxOrderOfPolyomial
-		},
-		
-			tmpNumerator=expr//Numerator;
-			tmpDenominator=expr//Denominator;
-			maxOrderOfPolyomial=polynomial//Exponent[#,var]&;
-			
-			maxOrderOfNumerator=tmpNumerator//Exponent[#,var]&;
-			maxOrderOfDenominator=(maxOrderOfPolyomial-1)*(tmpDenominator//Length);
-			
-			maxOrderOfNumerator+maxOrderOfDenominator
-	]/;PolynomialQ[polynomial,var]
-	
-GetMaxOrderForReduction[expr_Plus, polynomial_Plus, var_Symbol]:=
-	Module[
-		{
-		},
-		
-			expr//Exponent[#,var]&
-			
-			
-	]/;PolynomialQ[expr,var]&&PolynomialQ[polynomial,var]
-
-
-(*
-This function generates the reduction rule. It takes two arguments:
-	-the normalized(!) polynomial,
-	-the variable.
-*)
-
-ClearAll[MakeReductionRule]
-
-MakeReductionRule[polynomial_, var_Symbol]:=
-	Module[
-		{
-		tmp,
-		order,tmpRuleReduction,ruleReduction,
-		ruleCoeffs,dummyF
-		},
-			
-			(*Get the highest order of the polynomial*)
-			order=Exponent[polynomial,var];
-			
-			(*"Solve" for the leading monomial.*)
-			tmpRuleReduction=-polynomial+var^order;
-			
-			(*
-			Making of the rule. Notes:
-				-we need there Expand so the monomials merge and if needed we can apply the rule again.
-				-since SetDelayed rules has a HoldAll attribuite at the right hand side, we must use the usual trick with With
-				to insert exact values.
-			*)
-									
-			ruleReduction=With[
-				{
-				i=tmpRuleReduction,
-				j=order
-				},
-				
-				coeff_. var^pow_. :> 
-										(
-										coeff var^Mod[pow,j]
-										i^((pow-Mod[pow,j])/j)//
-											Collect[#,var]&
-										)
-				
-				]
-		
-		]/;PolynomialQ[polynomial,var]
-		
-MakeReductionRule[polynomial_, var_Symbol, maxOrder_Integer]:=
-	Module[
-		{
-		tmp,
-		
-		order,tmpRuleReduction,
-		
-		redcutionorder,tableOfRules
-		},
-		
-			(*Get the highest order of the polynomial*)
-			order=Exponent[polynomial,var];
-			
-			(*"Solve" for the leading monomial.*)
-			tmpRuleReduction=With[
-								{
-								leftHandSide=var^order, 
-								rightHandSide=-polynomial+var^order
-								},
-								
-									leftHandSide -> rightHandSide
-									
-								];
-		
-			tmp=var^(order-1);
-			redcutionorder=maxOrder-order;
-			tableOfRules=Table[
-			
-				tmp=tmp*var//Collect[#,var]&;
-				tmp=tmp/.tmpRuleReduction//Collect[#,var,Together]&;
-				{var^(i+order),tmp},
-				
-				{i,0,redcutionorder}			
-			];
-		
-			Table[
-			
-					With[
-						{
-						leftHandSide=tableOfRules[[i,1]],
-						rightHandSide=tableOfRules[[i,2]]
-						},
-					
-						leftHandSide -> rightHandSide
-					
-					],
-					
-			{i,1,Length[tableOfRules]}			
-			]//Dispatch
-	]
-
-
 ClearAll[ReducePolynomialForResidue]
 
 	
@@ -768,22 +614,16 @@ ReducePolynomialForResidue[expr_Times, polynomial_, var_Symbol]:=
 		ruleCoeffsReductionRule,ruleCoeffsPolynomialReduction,
 		tmpSybmolically,rulesCoeff
 		},
-			
-			maxOrder=GetMaxOrderForReduction[expr,polynomial,var];
-			ruleReduction=MakeReductionRule[polynomial,var,maxOrder];
-			
+		
 			tmp=List@@expr;
 			tmp=ReducePolynomialForResidue[#, polynomial, var]&/@tmp;
 
 			tmp=Table[MakeCoefficientsSymbolic[tmp[[i]],var, Unique[dummyVar]], {i,1,Length[tmp]}];
 			
 			{tmpSybmolically,rulesCoeff}={tmp[[All,1]],tmp[[All,2]]//Flatten//Dispatch};
-		
-			tmp=Times@@tmpSybmolically;	
-			tmp=tmp//Collect[#,var]&;
+			tmp=Times@@tmpSybmolically//Collect[#,var]&;
 			
-			tmp=tmp/.ruleReduction//Collect[#,var]&;
-			
+			tmp=PolynomialRemainder[tmp,polynomial,var];
 			tmp=tmp/.rulesCoeff;
 			
 			tmp
@@ -798,10 +638,8 @@ ReducePolynomialForResidue[expr_Plus|expr:Power[var_Symbol,power_Integer], polyn
 		ruleCoeffsReductionRule
 		},
 			
-			maxOrder=GetMaxOrderForReduction[expr,polynomial,var];
-			ruleReduction=MakeReductionRule[polynomial,var,maxOrder];
-			tmp=expr/.ruleReduction;
-			
+			tmp=PolynomialRemainder[expr,polynomial,var];
+			 
 			tmp
 			
 		
@@ -820,14 +658,9 @@ ReducePolynomialForResidue[Power[expr_,power_Integer], polynomial_, var_Symbol]:
 		ruleReduction,
 		ruleCoeffsReductionRule,ruleCoeffsPolynomialReduction
 		},
-			
-			maxOrder=GetMaxOrderForReduction[expr^power,polynomial,var];
-			ruleReduction=MakeReductionRule[polynomial,var,maxOrder];
-						
-			tmp=ReducePolynomialForResidue[#, polynomial, var]&/@expr;
-			tmp=Collect[tmp,var]^power//Collect[#,var]&;
-			tmp=tmp/.ruleReduction;
-			
+			 
+			tmp=PolynomialRemainder[expr^power,polynomial,var];
+			 
 			tmp
 			
 		
@@ -842,16 +675,10 @@ ReducePolynomialForResidue[Power[expr_,power_Integer], polynomial_, var_Symbol]:
 		ruleReduction,
 		ruleCoeffsReductionRule,ruleCoeffsPolynomialReduction
 		},
-			
-			maxOrder=GetMaxOrderForReduction[expr^power,polynomial,var];
-			ruleReduction=MakeReductionRule[polynomial,var,maxOrder];
-						
+		
 			tmp=PolynomialExtendedGCD[polynomial,expr,var][[2,2]];
 			
-			(*Major bootleneck!!*)
-			tmp=Collect[tmp,var]^-power//Collect[#,var]&;
-			tmp=tmp/.ruleReduction;
-			
+			tmp=PolynomialRemainder[tmp^-power,polynomial,var];
 			
 			tmp
 		
@@ -881,7 +708,7 @@ LinApartU[n_., var_, polynomial_, {orderOfPolynomial_,listOfConstans_List}]:=
 	]/;n>0
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*NewtonsIdentity*)
 
 
@@ -989,7 +816,7 @@ NewtonsIdentity::constantsEmptyList="The second argument must not be an empty li
 NewtonsIdentity::noRuleMatch="There were no rules matching the gives input. The first argument (`1`) should be the degree of the highest desired power sum, while the second (`2`) the list of constants.";
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*DistributeAll*)
 
 
@@ -1002,7 +829,7 @@ DistributeAll[expr_,var_]:=expr//.Times[a_,b_,c__]/;!FreeQ[a,var]&&!FreeQ[b,var]
 										Times[Distribute[Times[a,b],Plus,Times],c]
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*CheckNumericallyIfZero*)
 
 
@@ -1028,7 +855,7 @@ CheckNumericallyIfZero[expr_]:=
 	]
 
 
-(* ::Subsubsection:: *)
+(* ::Subsubsection::Closed:: *)
 (*ResidueForLaurentSeries*)
 
 
@@ -1373,7 +1200,7 @@ LinApart[expr_, var_, options : OptionsPattern[]]:=PreProccesorLinApart[expr, va
 LinApart[arg___]:=Null/;CheckArguments[LinApart[arg],2]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Preprocessor*)
 
 
