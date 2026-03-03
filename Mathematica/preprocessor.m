@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Preprocessor*)
 
 
@@ -317,9 +317,11 @@ PreProcessorLinApart[coeff_, ignoreFrac_, keepFrac_, vars_List, options:OptionsP
         tmp,
         tmpCoeff = coeff,
         keepForDivision = 1,
+        tmpIgnoreFrac = ignoreFrac,
         tmpKeepFrac = keepFrac,
         varPat,
-        bareDenoms, nonLinearDenoms
+        bareDenoms, denomData,
+        nonLinearDenoms
     },
 
     varPat = Alternatives @@ vars;
@@ -352,25 +354,38 @@ PreProcessorLinApart[coeff_, ignoreFrac_, keepFrac_, vars_List, options:OptionsP
     (* Filter to only var-dependent denominators - FIXED *)
     bareDenoms = Select[bareDenoms, !FreeQ[#, varPat] &];
     
+    (* Get denominator data - bases with their multiplicities *)
+	denomData = GetDenomData[tmpKeepFrac, vars];
+
     (* Safety check - FIXED *)
     If[Length[bareDenoms] < Length[vars],
         Return[tmpCoeff * ignoreFrac * keepForDivision * tmpKeepFrac, Module]
     ];
     
-    (* Check each denominator is linear *)
-    nonLinearDenoms = Select[bareDenoms, Max[Exponent[#, vars]] > 1 &];
+    (* Find positions of non-linear denominators (total degree > 1) *)
+	nonLinearDenoms = Position[denomData, 
+	    {base_, _} /; With[{rules = CoefficientRules[base, vars]},
+	        rules =!= {} && Max[Total /@ rules[[All, 1]]] > 1
+	    ]
+	][[All, 1]];
     
-    If[nonLinearDenoms =!= {},
-        Message[LinApart::nonLinearExpression, nonLinearDenoms];  (* FIXED *)
-        Return[tmpCoeff * ignoreFrac * keepForDivision * tmpKeepFrac, Module]  (* FIXED *)
-    ];
+    (* If there are non-linear denominators, factor them out *)
+	If[nonLinearDenoms =!= {},
+	    Message[LinApart::nonLinearDenomFactored, denomData[[nonLinearDenoms, 1]]];
+	    
+	    (* Move non-linear part to ignoreFrac *)
+	    tmpIgnoreFrac =tmpIgnoreFrac/(Times@@(Power@@@denomData[[nonLinearDenoms]]));
+	   
+	    tmpKeepFrac = Numerator[tmpKeepFrac] / Times @@ (Power @@@ Delete[denomData, List /@ nonLinearDenoms]);
+	    Return[tmpCoeff*tmpIgnoreFrac*LinApart[keepForDivision*tmpKeepFrac, vars, options], Module]
+	];
 
     (* Separate any variable-free constants. *)
     tmp = SeparateDependency[tmpKeepFrac, varPat];
     tmpCoeff = tmpCoeff * tmp[[1]];
     tmpKeepFrac = tmp[[2]];
 
-    PreProcessorLinApart[tmpCoeff, ignoreFrac, keepForDivision, tmpKeepFrac, vars, options, 3]
+    PreProcessorLinApart[tmpCoeff, tmpIgnoreFrac, keepForDivision, tmpKeepFrac, vars, options, 3]
 ]
 
 (* ============================================== *)

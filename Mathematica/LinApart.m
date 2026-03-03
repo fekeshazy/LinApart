@@ -374,7 +374,7 @@ LinApart[expr_, vars_List, options:OptionsPattern[]] :=
     PreProcessorLinApart[expr, vars, options, 0]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Text of messages*)
 
 
@@ -403,6 +403,7 @@ LinApart::ParallelComputationError = "Parallel computation is not possible for t
 LinApart::varNotSymbol = "The variable `1` is not a symbol or list.";
 LinApart::wrongOption = "Problem with option `1`, OptionName or OptionValue not recognized.";
 LinApart::nonLinearExpression = "The expression contains non-linear denominators `1`.";
+LinApart::nonLinearDenomFactored = "Warning: Non-linear denominators `1` were factored out and not decomposed.";
 LinApart::factorIsFalse = "`1` is an option for Factor but Factor was set to False.";
 LinApart::emptyVars = "Variable list must not be empty.";
 LinApart::unusedVars = "Variables `1` do not appear in any denominator. All specified variables must be used.";
