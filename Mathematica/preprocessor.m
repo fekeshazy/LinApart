@@ -311,7 +311,7 @@ PreProcessorLinApart[coeff_, ignoreFrac_, 1, vars_List, options:OptionsPattern[]
 PreProcessorLinApart[coeff_, ignoreFrac_, keepFrac_, vars_List, options:OptionsPattern[], 2] := 
     coeff * ignoreFrac * keepFrac /; IsPolynomialInVars[keepFrac, vars] && keepFrac =!= 1
 
-(* Main Stage 2 processing for multivariate. *)
+(* Main Stage 2 processing for linear multivariate. *)
 PreProcessorLinApart[coeff_, ignoreFrac_, keepFrac_, vars_List, options:OptionsPattern[], 2] := Module[
     {
         tmp,
@@ -358,7 +358,7 @@ PreProcessorLinApart[coeff_, ignoreFrac_, keepFrac_, vars_List, options:OptionsP
 	denomData = GetDenomData[tmpKeepFrac, vars];
 
     (* Safety check - FIXED *)
-    If[Length[bareDenoms] < Length[vars],
+    If[Length[bareDenoms] < Length[vars] && Numerator[tmpKeepFrac] === 1,
         Return[tmpCoeff * ignoreFrac * keepForDivision * tmpKeepFrac, Module]
     ];
     
@@ -386,7 +386,66 @@ PreProcessorLinApart[coeff_, ignoreFrac_, keepFrac_, vars_List, options:OptionsP
     tmpKeepFrac = tmp[[2]];
 
     PreProcessorLinApart[tmpCoeff, tmpIgnoreFrac, keepForDivision, tmpKeepFrac, vars, options, 3]
-]
+]/;OptionValue["Method"]==="MultivariateResidue"
+
+(* Main Stage 2 processing for non-linear multivariate. *)
+PreProcessorLinApart[coeff_, ignoreFrac_, keepFrac_, vars_List, options:OptionsPattern[], 2] := Module[
+    {
+        tmp,
+        tmpCoeff = coeff,
+        keepForDivision = 1,
+        tmpIgnoreFrac = ignoreFrac,
+        tmpKeepFrac = keepFrac,
+        varPat,
+        bareDenoms, denomData,
+        nonLinearDenoms
+    },
+
+    varPat = Alternatives @@ vars;
+
+    (* Extract non-monomial numerator factors. *)
+    tmp = If[Head[tmpKeepFrac] =!= Times, {tmpKeepFrac}, List @@ tmpKeepFrac];
+    tmp = Times @@ Cases[
+        tmp,
+        Power[a_, b_] /; b > 0 && Head[a] =!= Symbol :> Power[a, b],
+        1
+    ];
+    keepForDivision = keepForDivision * tmp;
+    tmpKeepFrac = tmpKeepFrac / tmp;
+
+    (* Extract bare denominator factors. *)
+    bareDenoms = If[
+        Head[Denominator[tmpKeepFrac]] === Times,
+        Cases[
+            List @@ (1 / Denominator[tmpKeepFrac]),
+            Power[base_, _] | base_ :> base
+        ],
+        {
+            If[Head[Denominator[tmpKeepFrac]] === Power,
+                Denominator[tmpKeepFrac][[1]],
+                Denominator[tmpKeepFrac]
+            ]
+        }
+    ];
+    
+    (* Filter to only var-dependent denominators - FIXED *)
+    bareDenoms = Select[bareDenoms, !FreeQ[#, varPat] &];
+    
+    (* Get denominator data - bases with their multiplicities *)
+	denomData = GetDenomData[tmpKeepFrac, vars];
+
+    (* Safety check - FIXED *)
+    If[Length[bareDenoms] < Length[vars] && Numerator[tmpKeepFrac] === 1,
+        Return[tmpCoeff * ignoreFrac * keepForDivision * tmpKeepFrac, Module]
+    ];
+
+    (* Separate any variable-free constants. *)
+    tmp = SeparateDependency[tmpKeepFrac, varPat];
+    tmpCoeff = tmpCoeff * tmp[[1]];
+    tmpKeepFrac = tmp[[2]];
+
+    PreProcessorLinApart[tmpCoeff, tmpIgnoreFrac, keepForDivision, tmpKeepFrac, vars, options, 3]
+]/;OptionValue["Method"]==="Leinartas"
 
 (* ============================================== *)
 (*      Stage 3: Dispatch to Main Algorithm       *)

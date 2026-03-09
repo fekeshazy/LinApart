@@ -512,7 +512,7 @@ FindSafeNullRelations::emptyList = "The `1` list must not be empty.";
 FindSafeNullRelations::tooFewDenoms = "Need at least 2 denominators to find null relations.";
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*EliminateNullRelations*)
 
 

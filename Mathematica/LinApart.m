@@ -3,7 +3,7 @@
 BeginPackage["LinApart`"]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Load internal functions*)
 
 
@@ -82,7 +82,7 @@ ClearAll[LinApart]
 		(* ============================================== *)
 
 $LinApartOptions=Options[LinApart] = {
-    "Method" -> "ExtendedLaurentSeries",
+    "Method" -> "Automatic",
     "Factor" -> True,
     "GaussianIntegers" -> True,
     "Extension" -> {},
@@ -97,51 +97,44 @@ Get["tools_general.m"]
 Get["tools_parallel.m"]
 Get["tools_univariate_nonlinear.m"]
 Get["tools_multivariate_linear.m"]
+Get["tools_residue_method.m"]
+Get["tools_Leinartas_algorithm.m"]
 Get["preprocessor.m"]
 Get["partial_fraction_algorithms.m"]
 
 Begin["Private`"]
 
 
-(* ::Subsection::Closed:: *)
-(*LinApart function*)
+(* ::Subsection:: *)
+(*LinApart wrapper*)
 
 
+LinApart function
 (*
-  LinApart - Partial Fraction Decomposition for Linear Denominators
+  LinApart - Partial Fraction Decomposition
 
-  This file contains the LinApart package, based on the articles 
-  arXiv:2405.20130, [LinApart2 paper], [LinApart3 paper].
+  This file contains the public entry point of the LinApart package.
 
   LinApart handles two cases:
-    1. Single-variable: LinApart[expr, var, options] - uses extended 
-       Laurent series, Euclidean, or equation system methods.
-    2. Multivariate: LinApart[expr, {var1, var2, ...}] - uses null 
-       relation elimination and basis residue computation.
+    1. Single-variable:
+         LinApart[expr, var, options]
+       Available methods:
+         - "ExtendedLaurentSeries"
+         - "Euclidean"
+         - "EquationSystem"
 
-  The dispatch is automatic based on whether the second argument is 
-  a Symbol or a List.
-*)
+    2. Multivariate:
+         LinApart[expr, {var1, var2, ...}, options]
+       Available methods:
+         - "MultivariateResidue"
+         - "Leinartas"
 
-(*
-  LinApart[expr, vars_List]
-  LinApart[expr, vars_List, options]
+  The dispatch is automatic based on whether the second argument is a
+  Symbol or a List.
 
-  Computes the multivariate partial fraction decomposition of expr 
-  with respect to the linear denominators in vars.
-
-  Parameters:
-    expr    - A rational expression with linear denominators in vars.
-    vars    - List of variables. The denominators must depend on ALL 
-              variables in this list.
-    options - Same options as single-variable version. Relevant options:
-                Factor, GaussianIntegers, Extension - for preprocessing
-                Parallel - for parallel basis contribution computation
-                PreCollect, ApplyAfterPreCollect - for gathering
-
-  Returns:
-    The partial fraction decomposition, where each term has at most 
-    n = Length[vars] denominators.
+  Method defaults:
+    - Single-variable  -> "ExtendedLaurentSeries"
+    - Multivariate     -> "MultivariateResidue"
 *)
 
 (*
@@ -163,47 +156,86 @@ Begin["Private`"]
       v
   PreProcessorLinApart[..., 2]
       |  - NormalizeDenominators (single-variable only)
-      |  - Linearity check (multivariate only)
+      |  - Multivariate method-dependent preprocessing
       |  - Handle edge cases
       v
   PreProcessorLinApart[..., 3]
       |
       +--- var_Symbol ---> mathematicaPartialFraction[..., var, options]
       |                        |
-      |                        +- "ExtendedLaurentSeries" -> ResidueForLaurentSeries
-      |                        +- "Euclidean" -> GCD reduction
+      |                        +- "ExtendedLaurentSeries"
+      |                        +- "Euclidean"
+      |                        +- "EquationSystem" -> Apart
       |
       +--- vars_List ---> mathematicaPartialFraction[..., vars, options]
                                |
-                               +- Polynomial part via multivariate Series
-                               +- EliminateNullRelations
-                               +- FindBases
-                               +- ResidueForBasis
+                               +- "MultivariateResidue"
+                               +- "Leinartas"
 *)
 
+$LinApartUnivariateMethodCases = {
+    "ExtendedLaurentSeries",
+    "Euclidean",
+    "EquationSystem"
+};
 
-$LinApartMethodCases = {"ExtendedLaurentSeries", "Euclidean", "EquationSystem"};
+$LinApartMultivariateMethodCases = {
+    "MultivariateResidue",
+    "Leinartas"
+};
+
 $LinApartBooleanCases = {True, False};
 
 		(* ============================================== *)
 		(*           Argument count check                 *)
 		(* ============================================== *)
 
-(*This is a new function might cause an error stating it reached the limit of recursion for lower versions.*)
-LinApart[arg___]:=$Failed/;!CheckArguments[LinApart[arg],2]
+LinApart[arg___] := $Failed /; !CheckArguments[LinApart[arg], 2]
+
+		(* ============================================== *)
+		(*         Automatic method normalization         *)
+		(* ============================================== *)
+
+(* Single-variable default method *)
+LinApart[expr_, var_Symbol, options:OptionsPattern[]] := Module[
+    {newOptions},
+
+    newOptions = FilterRules[{options}, Except["Method"]];
+
+    LinApart[
+        expr,
+        var,
+        "Method" -> "ExtendedLaurentSeries",
+        Sequence @@ newOptions
+    ]
+] /; OptionValue["Method"] === Automatic
+
+(* Multivariate default method *)
+LinApart[expr_, vars_List, options:OptionsPattern[]] := Module[
+    {newOptions},
+
+    newOptions = FilterRules[{options}, Except["Method"]];
+
+    LinApart[
+        expr,
+        vars,
+        "Method" -> "MultivariateResidue",
+        Sequence @@ newOptions
+    ]
+] /; OptionValue["Method"] === "Automatic"
 
 		(* ============================================== *)
 		(*           Check for input correctness          *)
 		(* ============================================== *)
 
 (* Expression is a polynomial in var - nothing to decompose *)
-LinApart[expr_, var_Symbol, options:OptionsPattern[]] := 
+LinApart[expr_, var_Symbol, options:OptionsPattern[]] :=
     expr /; PolynomialQ[expr, var]
 
 (* Expression is a polynomial in all vars - nothing to decompose *)
-LinApart[expr_, vars_List, options:OptionsPattern[]] := 
+LinApart[expr_, vars_List, options:OptionsPattern[]] :=
     expr /; PolynomialQ[expr, vars]
-    
+
 (* Variable must be a Symbol or List *)
 LinApart[expr_, var_, options:OptionsPattern[]] := (
     Message[LinApart::varNotSymbol, var];
@@ -211,9 +243,9 @@ LinApart[expr_, var_, options:OptionsPattern[]] := (
 ) /; Head[var] =!= Symbol && Head[var] =!= List
 
 (* Single-element list: delegate to single-variable version *)
-LinApart[expr_, vars_List, options:OptionsPattern[]] := 
+LinApart[expr_, vars_List, options:OptionsPattern[]] :=
     LinApart[expr, First[vars], options] /; Length[vars] === 1
-    
+
 (* Validation: vars must not be empty *)
 LinApart[expr_, vars_List, options:OptionsPattern[]] := (
     Message[LinApart::emptyVars];
@@ -227,174 +259,204 @@ LinApart[expr_, vars_List, options:OptionsPattern[]] := (
 ) /; !And @@ (Head[#] === Symbol & /@ vars)
 
 (* Remove duplicates and re-dispatch *)
-LinApart[expr_, vars_List, options:OptionsPattern[]] := 
-    LinApart[expr, DeleteDuplicates[vars], options] /; Length[vars] =!= Length[DeleteDuplicates[vars]]
+LinApart[expr_, vars_List, options:OptionsPattern[]] :=
+    LinApart[expr, DeleteDuplicates[vars], options] /;
+        Length[vars] =!= Length[DeleteDuplicates[vars]]
 
 (* Filter out unused variables and retry *)
 LinApart[expr_, vars_List, options:OptionsPattern[]] := Module[
     {usedVars, unusedVars},
-    
+
     usedVars = Intersection[vars, Variables[Denominator[Together[expr]]]];
     unusedVars = Complement[vars, usedVars];
-    
+
     If[unusedVars =!= {},
         Message[LinApart::droppingVars, unusedVars];
     ];
-    
-    (* Retry with only used variables *)
+
     Which[
         Length[usedVars] === 0,
-            (* No variables in denominator - return as-is *)
             expr,
         Length[usedVars] === 1,
-            (* Single variable - dispatch to univariate *)
             LinApart[expr, First[usedVars], options],
         True,
-            (* Multiple variables - continue with filtered list *)
             LinApart[expr, usedVars, options]
     ]
-    
 ] /; Length[Complement[vars, Variables[Denominator[expr]]]] > 0
 
-(* Option validation: Method *)
+		(* ============================================== *)
+		(*             Option validation                  *)
+		(* ============================================== *)
+
+(* Option validation: Method (single-variable) *)
 LinApart[expr_, var_Symbol, options:OptionsPattern[]] := (
     Message[LinApart::wrongOption, "Method"];
     $Failed
-) /; !MemberQ[$LinApartMethodCases, OptionValue["Method"]]
+) /; !MemberQ[Join[$LinApartUnivariateMethodCases, {Automatic}], OptionValue["Method"]]
+
+(* Option validation: Method (multivariate) *)
+LinApart[expr_, vars_List, options:OptionsPattern[]] := (
+    Message[LinApart::wrongOption, "Method"];
+    $Failed
+) /; !MemberQ[Join[$LinApartMultivariateMethodCases, {Automatic}], OptionValue["Method"]]
 
 (* Option validation: Factor *)
-LinApart[expr_, var_Symbol, options:OptionsPattern[]] := (
+LinApart[expr_, varOrVars_, options:OptionsPattern[]] := (
     Message[LinApart::wrongOption, "Factor"];
     $Failed
 ) /; !MemberQ[$LinApartBooleanCases, OptionValue["Factor"]]
 
 (* Option validation: GaussianIntegers *)
-LinApart[expr_, var_Symbol, options:OptionsPattern[]] := (
+LinApart[expr_, varOrVars_, options:OptionsPattern[]] := (
     Message[LinApart::wrongOption, "GaussianIntegers"];
     $Failed
 ) /; !MemberQ[$LinApartBooleanCases, OptionValue["GaussianIntegers"]]
 
 (* Option validation: GaussianIntegers requires Factor *)
-LinApart[expr_, var_Symbol, options:OptionsPattern[]] := (
+LinApart[expr_, varOrVars_, options:OptionsPattern[]] := (
     Message[LinApart::factorIsFalse, "GaussianIntegers"];
     $Failed
 ) /; OptionValue["GaussianIntegers"] && !OptionValue["Factor"]
 
 (* Option validation: Extension requires Factor *)
-LinApart[expr_, var_Symbol, options:OptionsPattern[]] := (
+LinApart[expr_, varOrVars_, options:OptionsPattern[]] := (
     Message[LinApart::factorIsFalse, "Extension"];
     $Failed
 ) /; OptionValue["Extension"] =!= {} && !OptionValue["Factor"]
 
 (* Option validation: Extension must be a list of numbers *)
-LinApart[expr_, var_Symbol, options:OptionsPattern[]] := (
+LinApart[expr_, varOrVars_, options:OptionsPattern[]] := (
     Message[LinApart::wrongOption, "Extension"];
     $Failed
-) /; Head[OptionValue["Extension"]] =!= List || 
-     (OptionValue["Extension"] =!= {} && !And @@ Map[NumberQ, N[OptionValue["Extension"]]])
+) /; Head[OptionValue["Extension"]] =!= List ||
+     (OptionValue["Extension"] =!= {} &&
+      !And @@ Map[NumberQ, N[OptionValue["Extension"]]])
 
 (* Option validation: Parallel format {bool, int, string} *)
-LinApart[expr_, var_Symbol, options:OptionsPattern[]] := (
+LinApart[expr_, varOrVars_, options:OptionsPattern[]] := (
     Message[LinApart::wrongOption, "Parallel"];
     $Failed
-) /; !MatchQ[OptionValue["Parallel"], {True|False, _Integer|None, _String|None}]
-
-(* Parallel requested but no kernels available: warn and proceed sequentially *)
-LinApart[expr_, var_Symbol, options:OptionsPattern[]] := Module[
-    {newOptions},
-    
-    Message[LinApart::noParallelKernels];
-    
-    newOptions = FilterRules[{options}, Except["Parallel"]];
-    
-    LinApart[expr, var, 
-        "Parallel" -> {False, OptionValue["Parallel"][[2]], OptionValue["Parallel"][[3]]},
-        Sequence @@ newOptions
-    ]
-    
-] /; OptionValue["Parallel"][[1]] && Length[Kernels[]] === 0
-
-(* Parallel only works with ExtendedLaurentSeries method in the single-variable case.*)
-LinApart[expr_, var_Symbol, options:OptionsPattern[]] := Module[
-    {newOptions},
-    
-    Message[LinApart::ParallelComputationError];
-    
-    newOptions = FilterRules[{options}, Except["Parallel"]];
-    
-    LinApart[expr, var,
-        "Parallel" -> {False, OptionValue["Parallel"][[2]], OptionValue["Parallel"][[3]]},
-        Sequence @@ newOptions
-    ]
-    
-] /; OptionValue["Parallel"][[1]] && OptionValue["Method"] =!= "ExtendedLaurentSeries"
-
-(* Parallel requested but no kernels available in the multivariable case.*)
-LinApart[expr_, vars_List, options:OptionsPattern[]] := Module[
-    {newOptions},
-    
-    Message[LinApart::noParallelKernels];
-    
-    newOptions = FilterRules[{options}, Except["Parallel"]];
-    
-    LinApart[expr, vars,
-        "Parallel" -> {False, OptionValue["Parallel"][[2]], OptionValue["Parallel"][[3]]},
-        Sequence @@ newOptions
-    ]
-    
-] /; OptionValue["Parallel"][[1]] && Length[Kernels[]] === 0
+) /; !MatchQ[OptionValue["Parallel"], {True | False, _Integer | None, _String | None}]
 
 (* Option validation: PreCollect *)
-LinApart[expr_, var_Symbol, options:OptionsPattern[]] := (
+LinApart[expr_, varOrVars_, options:OptionsPattern[]] := (
     Message[LinApart::wrongOption, "PreCollect"];
     $Failed
 ) /; !MemberQ[$LinApartBooleanCases, OptionValue["PreCollect"]]
 
 (* Option validation: ApplyAfterPreCollect requires PreCollect *)
-LinApart[expr_, var_Symbol, options:OptionsPattern[]] := (
+LinApart[expr_, varOrVars_, options:OptionsPattern[]] := (
     Message[LinApart::wrongOption, "ApplyAfterPreCollect"];
     $Failed
 ) /; !OptionValue["PreCollect"] && OptionValue["ApplyAfterPreCollect"] =!= None
 
 		(* ============================================== *)
+		(*              Parallel handling                 *)
+		(* ============================================== *)
+
+(* Parallel requested but no kernels available: single-variable *)
+LinApart[expr_, var_Symbol, options:OptionsPattern[]] := Module[
+    {newOptions},
+
+    Message[LinApart::noParallelKernels];
+
+    newOptions = FilterRules[{options}, Except["Parallel"]];
+
+    LinApart[
+        expr,
+        var,
+        "Parallel" -> {False, OptionValue["Parallel"][[2]], OptionValue["Parallel"][[3]]},
+        Sequence @@ newOptions
+    ]
+] /; OptionValue["Parallel"][[1]] && Length[Kernels[]] === 0
+
+(* Parallel requested but no kernels available: multivariate *)
+LinApart[expr_, vars_List, options:OptionsPattern[]] := Module[
+    {newOptions},
+
+    Message[LinApart::noParallelKernels];
+
+    newOptions = FilterRules[{options}, Except["Parallel"]];
+
+    LinApart[
+        expr,
+        vars,
+        "Parallel" -> {False, OptionValue["Parallel"][[2]], OptionValue["Parallel"][[3]]},
+        Sequence @@ newOptions
+    ]
+] /; OptionValue["Parallel"][[1]] && Length[Kernels[]] === 0
+
+(* Parallel only works with ExtendedLaurentSeries in the single-variable case *)
+LinApart[expr_, var_Symbol, options:OptionsPattern[]] := Module[
+    {newOptions},
+
+    Message[LinApart::ParallelComputationError];
+
+    newOptions = FilterRules[{options}, Except["Parallel"]];
+
+    LinApart[
+        expr,
+        var,
+        "Parallel" -> {False, OptionValue["Parallel"][[2]], OptionValue["Parallel"][[3]]},
+        Sequence @@ newOptions
+    ]
+] /; OptionValue["Parallel"][[1]] && OptionValue["Method"] =!= "ExtendedLaurentSeries"
+
+		(* ============================================== *)
 		(*      Entry point for further computation       *)
 		(* ============================================== *)
 
-
 (* EquationSystem method: delegate to Apart *)
-LinApart[expr_, var_Symbol, options:OptionsPattern[]] := 
+LinApart[expr_, var_Symbol, options:OptionsPattern[]] :=
     Apart[expr, var] /; OptionValue["Method"] === "EquationSystem"
 
 (* Main single-variable entry point: delegate to preprocessor *)
-LinApart[expr_, var_Symbol, options:OptionsPattern[]] := 
+LinApart[expr_, var_Symbol, options:OptionsPattern[]] :=
     PreProcessorLinApart[expr, var, options, 0]
-    
+
 (* Main multivariate entry point: delegate to preprocessor *)
-LinApart[expr_, vars_List, options:OptionsPattern[]] := 
+LinApart[expr_, vars_List, options:OptionsPattern[]] :=
     PreProcessorLinApart[expr, vars, options, 0]
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Text of messages*)
 
 
 End[];
 
-LinApart::usage = 
-"LinApart[expression, variable_Symbol] 
-LinApart[expression, variable_Symbol, Options] 
+LinApart::usage =
+"LinApart[expression, variable_Symbol]
+LinApart[expression, variable_Symbol, Options]
 LinApart[expression, {var1, var2, ...}]
 LinApart[expression, {var1, var2, ...}, Options]
-The function gives the partial fraction decomposition of fractions with linear denominators in the chosen variable(s).
-For single variable: the variable must be a symbol.
-For multiple variables: pass a list of symbols; all variables must appear in at least one denominator.
-Options: 
-	-Factor->True/False: factor each additive term in the expression; the default value is True.
-	-GaussianIntegers->True/False: factorization of the input expression is performed over the Gaussian integers; the default value is True.
-	-Extension->{a[1], a[2], ...}: option for Factor; factors a polynomial allowing coefficients that are rational combinations of the algebraic numbers a[i].
-	-Parallel->{True/False, NumberOfCores, TemporaryPath}: calculate the residues on multiple cores during the extended Laurent-series method (single-variable) or basis contributions (multivariate).
-	-PreCollect->True/False: gather by every unique structure in the expression; the default value is False.
-	-ApplyAfterPreCollect -> pure function (e.g. Factor): applies the given function on the variable independent part of each term; the default value is None.
+
+The function gives a partial fraction decomposition with respect to the chosen variable(s).
+
+For a single variable, available methods are:
+  \"ExtendedLaurentSeries\" (default),
+  \"Euclidean\",
+  \"EquationSystem\".
+
+For multiple variables, available methods are:
+  \"MultivariateResidue\" (default),
+  \"Leinartas\".
+
+Options:
+  - Method -> method name or Automatic
+  - Factor -> True/False
+  - GaussianIntegers -> True/False
+  - Extension -> {a[1], a[2], ...}
+  - Parallel -> {True/False, NumberOfCores, TemporaryPath}
+  - PreCollect -> True/False
+  - ApplyAfterPreCollect -> pure function (e.g. Factor)
+
+Notes:
+  - Automatic selects \"ExtendedLaurentSeries\" for one variable and
+    \"MultivariateResidue\" for multiple variables.
+  - Parallel computation is only supported for the
+    \"ExtendedLaurentSeries\" method in the univariate case and for
+    multivariate residue/basis computations in the multivariate case.
 ";
 
 (* Message definitions *)
@@ -409,6 +471,5 @@ LinApart::emptyVars = "Variable list must not be empty.";
 LinApart::unusedVars = "Variables `1` do not appear in any denominator. All specified variables must be used.";
 LinApart::varsNotSymbols = "The following variables are not Symbols: `1`.";
 LinApart::droppingVars = "Warning: Variables `1` do not appear in denominators and will be ignored.";
-
 
 EndPackage[];
