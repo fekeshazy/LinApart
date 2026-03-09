@@ -343,5 +343,4 @@ The main package file should load the source files in dependency order. A typica
 6. `preprocessor.m`
 7. `partial_fraction_algorithms.m`
 
-If the Leinartas helper functions are currently stored inside another file, this README still reflects the conceptual separation that the code now has.
 
