@@ -1,91 +1,292 @@
 # LinApart
 
-The LinApart routine can be used for efficiently performing the univariate partial fraction decomposition of large symbolic expressions. The routine is described in the following paper: [arXiv:2405.20130](https://arxiv.org/abs/2405.20130) and https://arxiv.org/pdf/2511.15735 .
+`LinApart` is a package for partial fraction decomposition in **Wolfram Mathematica**, together with a **C implementation** of the original univariate algorithm.
 
-Wolfram Mathematica and C language implementations of the routine are provided. The latter includes both a standalone version and a library suitable for linking with other software (e.g. FORM).
+The project currently supports:
 
-Example files for the Mathematica routine are also provided.
+- **univariate** partial fraction decomposition,
+- **multivariate** decomposition for **linear** denominators,
+- **multivariate** decomposition for **general polynomial** denominators via a **Leinartas-style** method.
 
-If you find this routine useful in your research please consider citing the article.
+The Mathematica implementation is the main development branch of the project. It contains several complementary algorithms under one interface.
+
+The package is based on the following papers:
+
+- [arXiv:2405.20130](https://arxiv.org/abs/2405.20130)
+- [arXiv:2511.15735](https://arxiv.org/pdf/2511.15735)
+
+If `LinApart` is useful in your research, please consider citing the relevant paper(s).
+
+## Features
+
+### Mathematica package
+
+The Mathematica package provides a single entry point:
+
+```mathematica
+LinApart[expr, var]
+LinApart[expr, var, options]
+
+LinApart[expr, {var1, var2, ...}]
+LinApart[expr, {var1, var2, ...}, options]
+```
+
+It supports the following methods.
+
+#### Single-variable methods
+
+- `"ExtendedLaurentSeries"`  
+  Residue-based decomposition. This is the main univariate method and also supports irreducible non-linear denominator factors.
+
+- `"Euclidean"`  
+  Uses repeated polynomial extended-GCD identities.
+
+- `"EquationSystem"`  
+  Delegates to Mathematica's built-in `Apart`.
+
+#### Multivariate methods
+
+- `"MultivariateResidue"`  
+  Designed for **linear** denominator factors. Uses null-relation elimination and basis residues.
+
+- `"Leinartas"`  
+  A multivariate decomposition method for **general polynomial** denominator factors.
+
+## Repository layout
+
+A typical repository layout is:
+
+- `Mathematica/` — Mathematica package source
+- `C/` — C library and standalone executable
+- `Examples/` — Mathematica examples and tests
+
+The Mathematica package consists of several `.m` files which are loaded together.  
+Keep them in the same directory.
 
 ## Installation
 
-1. Clone the repository:
-```
+### Clone the repository
+
+```bash
 git clone https://github.com/fekeshazy/LinApart.git
-```
-2. Navigate to the project directory:
-```
 cd LinApart
 ```
 
-### Mathematica
+## Mathematica installation
 
-1. Copy the `LinApart.m` file from the `LinApart/Mathematica` directory to your Mathematica package directory.
+Copy the **entire Mathematica package directory** into a location where Mathematica can find it.
 
-2. The routine can be loaded with:
-    ~~~mathematica
-    Needs["LinApart`"]
-    ~~~
-    
-### C
+For example, copy the contents of `Mathematica/` into one of your Mathematica application directories.
 
-#### Prerequisites
+Then load the package with:
 
-- C compiler (e.g., GCC)
-- GNU Make
-- [GMP library](https://gmplib.org/)
-
-#### Building the Executable and Library
-
-1. Navigate to the C directory:
+```mathematica
+Needs["LinApart`"]
 ```
-cd LinApart/C
-```
-2. Compile the library and standalone executable:
-```
+
+If the package is not installed in a standard Mathematica path, you can also load it from its directory with `Get`.
+
+## C installation
+
+### Prerequisites
+
+- a C compiler such as `gcc`
+- `make`
+- [GMP](https://gmplib.org/)
+
+### Build
+
+```bash
+cd C
 make
 ```
 
-## Usage
+This builds:
 
-### Mathematica
+- a standalone executable
+- a library that can be linked from other software
 
-LinApart[expression, variable_Symbol, Options] 
+The library is suitable for external use, for example from `FORM`.
 
-The function gives the partrial fraction decomposition of fractions with linear denominators in the choosen variable; the variable must be a symbol. 
+## Mathematica usage
 
-Options: 
-	-Factor->True/False: factor each additive term in the expression; the default value is False.
-	-GaussianInteger->True/False: factorization of the input expression is performed over the Gaussian integer; the default value is False.
-	-Extension->{a[1], a[2], ...}: option for Factor; factors a polynomial allowing coefficients that are rational combinations of the algebraic numbers a[i].
-	-Parallel->{True/False, NumberOfCores, TemporaryPath}: calculate the residues on multiple cores during the extended Laurent-series method.
-	-PreCollect->True/False: gather by every unique structure in the expression; the default value is False.
-	-ApplyAfterPreCollect -> pure function (e.g. Factor): applies the given function on the variable independent part of each term; the default value is None.
+### Basic univariate example
 
+```mathematica
+expr = 1/((x - 1) (x + 1)^2);
+LinApart[expr, x]
+```
 
-For more detailed usage instructions and examples, refer to the paper and the `LinApart/Examples` directory.
+### Choose a univariate method
 
-### C Standalone Executable
-The standalone executable performs the partial fraction decomposition of the function
-$x^{l} {\LARGE\Pi}^{n}_{k=1} \frac{1}{(x-a_k)^{m_k}}$
+```mathematica
+LinApart[expr, x, "Method" -> "Euclidean"]
+```
 
-1. Run the standalone executable from the command line:
-    ```
-    ./LinApart <exponents> <roots>
-    ```
-    * &lt;exponents&gt;: Comma-separated list of $(n+1)$ exponents $l,m_1,\ldots, m_n$ (e.g., "1,2,3,4")
-    * &lt;roots&gt;: Comma-separated list of $n$ roots $a_1,\ldots,a_n$ (e.g., "a,b,c")
+### Basic multivariate linear example
 
-    Example: to perform the partial fraction decomposition of $\frac{x^3}{(x-a1)^5(x-a2)^7(x-a3)^{11}}$, use
-    ```
-    ./LinApart "3,5,7,11" "a1,a2,a3"
-    ```
+```mathematica
+expr = 1/(x y (x + y - 1));
+LinApart[expr, {x, y}, "Method" -> "MultivariateResidue"]
+```
+
+### Basic multivariate polynomial example
+
+```mathematica
+expr = 1/((x^2 + y^2) (x^2 + y^2 + 1));
+LinApart[expr, {x, y}, "Method" -> "Leinartas"]
+```
+
+## Mathematica options
+
+`LinApart` supports the following options.
+
+### `"Method"`
+
+Chooses the decomposition algorithm.
+
+For one variable:
+
+- `"ExtendedLaurentSeries"`
+- `"Euclidean"`
+- `"EquationSystem"`
+
+For several variables:
+
+- `"MultivariateResidue"`
+- `"Leinartas"`
+
+If automatic method selection is enabled in your version of the package, the defaults are:
+
+- univariate: `"ExtendedLaurentSeries"`
+- multivariate: `"MultivariateResidue"`
+
+### `"Factor"`
+
+```mathematica
+"Factor" -> True | False
+```
+
+Factors each additive term before decomposition.
+
+### `"GaussianIntegers"`
+
+```mathematica
+"GaussianIntegers" -> True | False
+```
+
+Controls whether factorization is performed over the Gaussian integers.
+
+### `"Extension"`
+
+```mathematica
+"Extension" -> {a1, a2, ...}
+```
+
+Passes an algebraic extension to Mathematica's factorization routines.
+
+### `"Parallel"`
+
+```mathematica
+"Parallel" -> {useParallelQ, numberOfCores, temporaryPath}
+```
+
+Enables parallel evaluation where supported.
+
+Example:
+
+```mathematica
+"Parallel" -> {True, 4, "/tmp/"}
+```
+
+### `"PreCollect"`
+
+```mathematica
+"PreCollect" -> True | False
+```
+
+Groups terms by common variable-dependent structure before decomposition.
+
+### `"ApplyAfterPreCollect"`
+
+```mathematica
+"ApplyAfterPreCollect" -> f
+```
+
+Applies a function such as `Factor` to the variable-independent coefficient during precollection.
+
+## Notes on the methods
+
+### Univariate
+
+The univariate implementation is intended for large symbolic expressions and supports higher powers of irreducible denominator factors.
+
+### Multivariate residue method
+
+The `"MultivariateResidue"` method is for **linear** denominator factors. It is fast and effective in that setting, especially for physics-style denominator structures.
+
+### Leinartas method
+
+The `"Leinartas"` method is intended for **general polynomial denominators**. It is the appropriate choice when non-linear denominator factors should be decomposed rather than factored away or ignored.
+
+Multivariate decompositions are generally **not unique**.
+
+## C standalone executable
+
+The standalone executable performs the decomposition of functions of the form
+
+\[
+x^l \prod_{k=1}^{n} \frac{1}{(x-a_k)^{m_k}} .
+\]
+
+Run it as:
+
+```bash
+./LinApart <exponents> <roots>
+```
+
+where
+
+- `<exponents>` is a comma-separated list of `l,m1,...,mn`
+- `<roots>` is a comma-separated list of `a1,...,an`
+
+### Example
+
+To decompose
+
+\[
+\frac{x^3}{(x-a_1)^5 (x-a_2)^7 (x-a_3)^{11}},
+\]
+
+run
+
+```bash
+./LinApart "3,5,7,11" "a1,a2,a3"
+```
+
+## Examples and tests
+
+Example notebooks, scripts, and regression tests are provided in the repository.
+
+These include:
+
+- univariate examples,
+- multivariate linear-denominator examples,
+- multivariate polynomial-denominator examples,
+- stress tests with many denominator factors and high powers.
+
+For large expressions, a useful correctness check is:
+
+```mathematica
+Together[expr - LinApart[expr, vars, "Method" -> "..."]] === 0
+```
 
 ## Contributing
-Contributions are welcome! If you find any issues or have suggestions for
-improvement, please open an issue or submit a pull request on the GitHub
-repository.
+
+Contributions are welcome.
+
+If you find a bug, have a feature request, or want to improve the implementation, please open an issue or submit a pull request.
 
 ## License
+
 This project is licensed under the MIT License.
