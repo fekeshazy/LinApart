@@ -34,15 +34,7 @@
   (vars_List) cases. The dispatch is based on pattern matching.
 *)
 
-Options[PreProcessorLinApart] = {
-    "Method" -> "ExtendedLaurentSeries",
-    "Factor" -> True,
-    "GaussianIntegers" -> True,
-    "Extension" -> {},
-    "Parallel" -> {False, None, None},
-    "PreCollect" -> False,
-    "ApplyAfterPreCollect" -> None
-};
+Options[PreProcessorLinApart] = $LinApartOptions
 
 
 (* ============================================== *)
@@ -240,6 +232,25 @@ PreProcessorLinApart[expr_, vars_List, options:OptionsPattern[], 1] := Module[
 (* ============================================== *)
 (* Stage 2: Normalization and Improper Fractions  *)
 (* ============================================== *)
+
+(*
+  Stage 2: Normalization and method-dependent denominator preprocessing
+
+  Single-variable:
+    - normalize denominator factors,
+    - separate constants introduced by normalization,
+    - handle improper fractions.
+
+  Multivariate:
+    - "MultivariateResidue":
+        assumes linear denominators and factors out unsupported non-linear ones.
+    - "Leinartas":
+        keeps general polynomial denominators and forwards them to the
+        syzygy-based multivariate decomposition.
+    - "Groebner":
+        keeps general polynomial denominators and forwards them to the
+        Gr\[ODoubleDot]bner-basis multivariate decomposition.
+*)
 
 (* Single-variable rules *)
 
@@ -445,7 +456,7 @@ PreProcessorLinApart[coeff_, ignoreFrac_, keepFrac_, vars_List, options:OptionsP
     tmpKeepFrac = tmp[[2]];
 
     PreProcessorLinApart[tmpCoeff, tmpIgnoreFrac, keepForDivision, tmpKeepFrac, vars, options, 3]
-]/;OptionValue["Method"]==="Leinartas"
+]/; MemberQ[{"Leinartas", "Groebner"}, OptionValue["Method"]]
 
 (* ============================================== *)
 (*      Stage 3: Dispatch to Main Algorithm       *)

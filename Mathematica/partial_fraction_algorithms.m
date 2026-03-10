@@ -4,41 +4,56 @@
 (*Partial fraction function*)
 
 
+(* ::Subsubsection:: *)
+(*Comment*)
+
+
 (*
   mathematicaPartialFraction[coeff, ignoreFrac, keepForDivision, keepFrac, var/vars, options]
 
-  Core partial fraction decomposition function. Handles three methods:
+  Core partial fraction decomposition function.
+
+  Supported methods:
 
   Single-variable:
-    1. "ExtendedLaurentSeries" - Computes residues at each pole using 
-       derivatives and the Laurent series formula. Supports parallelization.
-    2. "Euclidean" - Uses polynomial extended GCD to iteratively reduce 
-       pairs of denominators via B\[EAcute]zout's identity.
+    1. "ExtendedLaurentSeries"
+       Computes residues at each pole using derivatives and the Laurent-series formula.
+    2. "Euclidean"
+       Uses polynomial extended GCD identities to iteratively reduce pairs of denominators.
+    3. "EquationSystem"
+       Delegates to Mathematica's Apart.
 
   Multivariate:
-    3. "NullRelationElimination" - Eliminates common singularities via 
-       null relations, then computes residues at each basis.
+    4. "MultivariateResidue"
+       Eliminates affine/null relations among linear denominators and computes
+       basis residues.
+    5. "Leinartas"
+       Uses polynomial syzygies to perform recursive multivariate decomposition.
+    6. "Groebner"
+       Uses a Gr\[ODoubleDot]bner-basis reduction in q-space, with optional iterated
+       q-factor insertion.
 
   Parameters:
-    coeff          - Variable-free coefficient from preprocessing.
-    ignoreFrac     - Factors with non-integer powers, factored out by SeparateFrac.
+    coeff           - Variable-free coefficient from preprocessing.
+    ignoreFrac      - Factors with unsupported powers, factored out by SeparateFrac.
     keepForDivision - Numerator factors for improper fraction handling.
-                     If this contains the variable(s), a polynomial part is 
-                     extracted via Series at infinity.
-    keepFrac       - The proper fraction to decompose.
-    var            - Single variable (Symbol) or list of variables (List).
-    options        - Options inherited from LinApart.
+                      If this contains the variable(s), a polynomial part is
+                      extracted via Series at infinity.
+    keepFrac        - The proper fraction to decompose.
+    var             - Single variable (Symbol) or list of variables (List).
+    options         - Options inherited from LinApart.
 
   Returns:
-    The partial fraction decomposition of coeff * ignoreFrac * keepForDivision * keepFrac.
+    The partial fraction decomposition of
+      coeff * ignoreFrac * keepForDivision * keepFrac.
 
   Notes:
-    - coeff * ignoreFrac is placed OUTSIDE the residue computation 
-      for efficiency. Large coefficients significantly slow down the 
-      internal sums in ResidueForLaurentSeries/ResidueForBasis.
-    - Plus has to unpack packed-arrays to add elements, while Total 
-      can operate on packed-arrays directly. This is why Total is used 
-      for the final summation.
+    - coeff * ignoreFrac is often kept outside the internal decomposition
+      step for efficiency.
+    - The multivariate Gr\[ODoubleDot]bner method supports the options
+        "IterativeGroebner"
+        "GroebnerParameterSymbolization"
+      to control the q-space reduction strategy and coefficient handling.
 *)
 
 ClearAll[mathematicaPartialFraction]
@@ -48,8 +63,12 @@ Options[mathematicaPartialFraction] = $LinApartOptions;
 mathematicaPartialFraction[args___] := Null /; !CheckArguments[mathematicaPartialFraction[args], {5,6}]
 
 
+(* ::Subsubsection::Closed:: *)
+(*Single-variable*)
+
+
 		(* ============================================== *)
-		(*    Single-variable: Extended Laurent Series    *)
+		(*             Extended Laurent Series            *)
 		(* ============================================== *)
 
 	(*
@@ -177,7 +196,7 @@ mathematicaPartialFraction[
 
 
 		(* ============================================== *)
-		(*      Single-variable: Euclidean Method         *)
+		(*                Euclidean Method                *)
 		(* ============================================== *)
 
 	(*
@@ -313,6 +332,10 @@ mathematicaPartialFraction[
     tmp + tmpPolynomialPart /. tmpRules
 
 ] /; OptionValue["Method"] === "Euclidean"
+
+
+(* ::Subsubsection:: *)
+(*Multi-variable*)
 
 
 		(* ============================================== *)
@@ -701,6 +724,95 @@ mathematicaPartialFraction[
         tmpPolynomialPart
 ]/; OptionValue["Method"] === "MultivariateResidue"
 
-
 mathematicaPartialFraction::eliminationFailed = 
     "Null relation elimination failed. The expression may contain affine relations or unsupported denominator structures.";
+
+
+		(* ============================================== *)
+		(*           Multivariate: Groebner Method        *)
+		(* ============================================== *)
+
+(*
+  Method "Groebner":
+    1. Extract the polynomial part at infinity, if present.
+    2. Expand the remaining rational part into additive terms.
+    3. Terms with at most Length[vars] variable-dependent denominator
+       factors are already minimal and are kept unchanged.
+    4. For terms with more than Length[vars] denominator factors:
+         - build a local denominator set,
+         - optionally make non-polynomial parameter sub-expressions symbolic,
+         - clear remaining parameter denominators in the denominator set,
+         - build the local Gr\[ODoubleDot]bner-apart ideal,
+         - compute a local Gr\[ODoubleDot]bner basis,
+         - convert the term into q-space,
+         - reduce it either
+             * iteratively, or
+             * in one shot,
+         - substitute back from q-space,
+         - restore the original parameter expressions.
+    5. Sum all reduced terms and add the polynomial part.
+
+  Options:
+    "IterativeGroebner" -> True|False
+      True  : multiply q-factors in one at a time and reduce after each step
+      False : reduce the full q-space expression in one shot
+
+    "GroebnerParameterSymbolization" -> True|False
+      True  : replace non-polynomial parameter-dependent coefficient pieces
+              by temporary symbols before Gr\[ODoubleDot]bner-basis computations
+      False : leave coefficient expressions unchanged
+
+  Notes:
+    - coeff * ignoreFrac is kept outside the Gr\[ODoubleDot]bner-based termwise reduction
+      for consistency with the other methods.
+    - Denominator sets and Gr\[ODoubleDot]bner bases are constructed locally for each term.
+*)
+
+mathematicaPartialFraction[
+    coeff_, ignoreFrac_, keepForDivision_, keepFrac_, vars_List,
+    options:OptionsPattern[]
+] := Module[
+    {
+        varPat,
+        tmpSeriesPart = 0,
+        tmpPolynomialPart,
+        rationalPart,
+        terms
+    },
+
+    varPat = Alternatives @@ vars;
+
+    If[!FreeQ[keepForDivision, varPat],
+        tmpSeriesPart = Series[
+            keepForDivision * keepFrac,
+            Sequence @@ ({#, Infinity, 0} & /@ vars)
+        ] // Normal
+    ];
+
+    tmpPolynomialPart = coeff * ignoreFrac * tmpSeriesPart;
+
+    rationalPart = If[tmpSeriesPart === 0,
+        keepForDivision * keepFrac,
+        Together[keepForDivision * keepFrac - tmpSeriesPart]
+    ];
+
+    If[rationalPart === 0,
+        Return[tmpPolynomialPart, Module]
+    ];
+
+    If[CountBareDenoms[rationalPart, vars] <= Length[vars],
+        Return[coeff * ignoreFrac * rationalPart + tmpPolynomialPart, Module]
+    ];
+
+    terms = Expand[rationalPart];
+    terms = If[Head[terms] === Plus, List @@ terms, {terms}];
+
+    terms = GroebnerApart[#, vars, OptionValue["IterativeGroebner"],OptionValue["GroebnerParameterSymbolization"]] & /@ terms;
+
+    If[MemberQ[terms, $Failed],
+        Return[$Failed, Module]
+    ];
+
+    coeff * ignoreFrac * (Plus @@ terms // Expand[#, varPat] &) + tmpPolynomialPart
+
+] /; OptionValue["Method"] === "Groebner"

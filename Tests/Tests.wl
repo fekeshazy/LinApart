@@ -245,10 +245,14 @@ TestLinApart1D[{testName_String, expr_, var_Symbol, opts___}] := Module[
 ClearAll[TestLinApartMV]
 
 TestLinApartMV[{testName_String, expr_, vars_List, opts___}] := Module[
-    {result, timing, ok, symbols, symbolVals, numDiff, symDiff, val, absVal,
+    {tmp,result, timing, ok, symbols, symbolVals, numDiff, symDiff, val, absVal,
      nVars, varPat, terms, term, den, denFactors, denomCount},
     
-    {timing, result} = AbsoluteTiming[LinApart[expr, vars, opts]];
+    tmp=TimeConstrained[AbsoluteTiming[LinApart[expr, vars, opts]],10];
+    
+    If[tmp===$Aborted, Return[ Print[{timing, "\[Cross] "}, "  " <> testName <> " ; Out of time."], Module]];
+    
+    {timing, result} = tmp;
     
     nVars = Length[vars];
     varPat = Alternatives @@ vars;
@@ -745,7 +749,7 @@ Print["--------------------------------------------"];
 (*Examples*)
 
 
-TestDataMV = {
+TestDataMVLinear = {
     (* --- Basic 2D --- *)
     {"MV-001: 3 non-central", 1/(x y (x + y - 1)), {x, y}},
     {"MV-002: 3 central", 1/(x y (x + y)), {x, y}},
@@ -911,7 +915,284 @@ Print["============================================"];
 
 ResultsMV = MapIndexed[
     {TestLinApartMV[#1], First[#2]} &,
-    TestDataMV
+    TestDataMVLinear
+];
+
+PassedMV = Count[ResultsMV, {1, _}];
+FailedMV = Count[ResultsMV, {0, _}];
+FailedIndicesMV = Cases[ResultsMV, {0, idx_} :> idx];
+FailedTestsMV = TestDataMVLinear[[FailedIndicesMV, 1]];
+
+Print[""];
+Print["--------------------------------------------"];
+Print["  Section 2 Summary:"];
+Print["  Total:  ", Length[TestDataMVLinear]];
+Print["  Passed: ", PassedMV];
+Print["  Failed: ", FailedMV];
+If[FailedTestsMV =!= {},
+    Print["  Failed tests: ", FailedTestsMV]
+];
+Print["--------------------------------------------"];
+
+
+(* ::Subsection:: *)
+(*Leinartas*)
+
+
+(* ::Subsubsection::Closed:: *)
+(*Examples*)
+
+
+TestDataMVLinear = {
+    (* --- Basic 2D --- *)
+    {"MV-001: 3 non-central", 1/(x y (x + y - 1)), {x, y}},
+    {"MV-002: 3 central", 1/(x y (x + y)), {x, y}},
+    {"MV-003: 4 non-central", 1/(x y (x + y - 1) (x - y + 2)), {x, y}},
+    {"MV-004: 5 non-central", 1/(x y (x + y - 1) (x - y + 2) (2 x + y - 3)), {x, y}},
+    {"MV-005: 4 central", 1/(x y (x + y) (x - y)), {x, y}},
+    {"MV-006: 6 central", 1/(x y (x + y) (x - y) (2 x + y) (x + 2 y)), {x, y}},
+
+    (* --- Higher powers 2D --- *)
+    {"MV-007: Power on x", 1/(x^2 y (x + y - 1)), {x, y}},
+    {"MV-008: Power on y", 1/(x y^2 (x + y - 1)), {x, y}},
+    {"MV-009: Power on non-central", 1/(x y (x + y - 1)^2), {x, y}},
+    {"MV-010: Multiple powers", 1/(x^3 y^2 (x + y - 1)^2), {x, y}},
+    {"MV-011: 5 denoms powers", 1/(x^2 y (x + y - 1)^2 (x - y + 2)), {x, y}},
+    {"MV-012: Central with powers", 1/(x^2 y (x + y)^2), {x, y}},
+
+    (* --- Mixed central/non-central --- *)
+    {"MV-013: Mixed 6 denoms", 1/(x y (x + y) (x - y) (x + y - 1) (x - y + 1)), {x, y}},
+    {"MV-014: Mixed 4 denoms", 1/(x y (x + y) (x + y - 1)), {x, y}},
+
+    (* --- Symbolic coefficients --- *)
+    {"MV-015: Symbolic 4 denoms", 1/(x y (a x + y - 1) (x + b y - 1)), {x, y}},
+    {"MV-016: Mandelstam-style", 1/((s - x) (t - y) (s + t - x - y - 1)), {x, y}},
+    {"MV-017: Symbolic 4 denoms heavy", 1/(x y (s x + t y - 1) (u x - v y + 1)), {x, y}},
+
+    (* --- 3D tests --- *)
+    {"MV-018: 3D 4 non-central", 1/(x y z (x + y + z - 1)), {x, y, z}},
+    {"MV-019: 3D 6 non-central", 1/(x y z (x + y - 1) (y + z - 2) (x + z - 3)), {x, y, z}},
+    {"MV-020: 3D 6 symmetric", 1/(x y z (x + y - 1) (y + z - 1) (x + z - 1)), {x, y, z}},
+    {"MV-021: 3D higher powers", 1/(x^2 y z^2 (x + y + z - 1)), {x, y, z}},
+    {"MV-022: 3D 4 central", 1/(x y z (x + y + z)), {x, y, z}},
+    {"MV-023: 3D 5 denoms", 1/(x y z (x + y - 1) (y + z - 1)), {x, y, z}},
+
+    (* --- 4D tests --- *)
+    {"MV-024: 4D 5 non-central", 1/(x y z w (x + y + z + w - 1)), {x, y, z, w}},
+
+    (* --- Stress tests 2D --- *)
+    {"MV-025: 7 denoms mixed",
+        1/(x y (x + y) (x - y) (x + y - 1) (x - y + 1) (2 x + 3 y - 5)), {x, y}},
+    {"MV-026: High powers 4 denoms",
+        1/(x^3 y^3 (x + y - 1)^3 (x - y + 1)^2), {x, y}},
+    {"MV-027: 6 non-central denoms",
+        1/(x y (x + y - 1) (x - y + 1) (2 x + y - 3) (x + 3 y - 2)), {x, y}},
+    {"MV-028: Near-degenerate",
+        1/(x (x + y) (x + y - 1) (x + 2 y) (x + 2 y - 1)), {x, y}},
+
+    (* --- Stress tests 3D --- *)
+    {"MV-029: 3D 7 denoms mixed",
+        1/(x y z (x + y) (y + z - 1) (x + z - 2) (x + y + z - 3)), {x, y, z}},
+    {"MV-030: 3D 5 denoms powers",
+        1/(x^2 y^2 z (x + y + z - 1)^2 (x - y + z + 1)), {x, y, z}},
+    {"MV-031: 3D 8 denoms",
+        1/(x y z (x + y - 1) (y + z - 1) (x + z - 1) (x + y + z - 2) (x - y + z + 1)), {x, y, z}},
+
+    (* --- Stress tests 4D --- *)
+    {"MV-032: 4D 6 denoms", 1/(x y z w (x + y - 1) (z + w - 1)), {x, y, z, w}},
+    {"MV-033: 4D 7 denoms",
+        1/(x y z w (x + y + z - 1) (y + z + w - 2) (x + w - 1)), {x, y, z, w}},
+
+    (* --- Extreme tests --- *)
+    {"MV-034: 2D 8 denoms",
+        1/(x y (x + y - 1) (x - y + 2) (2 x + y - 3) (x + 3 y - 4) (3 x - y + 5) (x + y - 7)), {x, y}},
+    {"MV-035: 2D 10 denoms",
+        1/(x y (x + y - 1) (x - y + 2) (2 x + y - 3) (x + 3 y - 4) (3 x - y + 5) (x + y - 7) (2 x - 3 y + 1) (4 x + y - 2)), {x, y}},
+    {"MV-036: 2D 9 denoms moderate extreme",
+        1/(x y (x + y - 1) (x - y + 2) (2 x + y - 3) (x + 3 y - 4) (3 x - y + 5) (2 x - 3 y + 1) (4 x + y - 2)), {x, y}},
+
+    (* --- Very high powers --- *)
+    {"MV-037: Powers (5,4,3)", 1/(x^5 y^4 (x + y - 1)^3), {x, y}},
+    {"MV-038: Powers (6,5,4)", 1/(x^6 y^5 (x + y - 1)^4), {x, y}},
+    {"MV-039: Powers (7,6,5)", 1/(x^7 y^6 (x + y - 1)^5), {x, y}},
+    {"MV-040: 4 denoms powers (4,3,3,3)",
+        1/(x^4 y^3 (x + y - 1)^3 (x - y + 2)^3), {x, y}},
+    {"MV-041: 3D powers (4,3,3,3)", 1/(x^4 y^3 z^3 (x + y + z - 1)^3), {x, y, z}},
+    {"MV-042: 3D powers (5,4,4,3)", 1/(x^5 y^4 z^4 (x + y + z - 1)^3), {x, y, z}},
+
+    (* --- Many variables --- *)
+    {"MV-043: 5D 6 denoms",
+        1/(x1 x2 x3 x4 x5 (x1 + x2 + x3 + x4 + x5 - 1)), {x1, x2, x3, x4, x5}},
+    {"MV-044: 6D 7 denoms",
+        1/(x1 x2 x3 x4 x5 x6 (x1 + x2 + x3 + x4 + x5 + x6 - 1)), {x1, x2, x3, x4, x5, x6}},
+    {"MV-045: 7D 8 denoms",
+        1/(x1 x2 x3 x4 x5 x6 x7 (x1 + x2 + x3 + x4 + x5 + x6 + x7 - 1)), {x1, x2, x3, x4, x5, x6, x7}},
+
+    (* --- Complex symbolic coefficients --- *)
+    {"MV-046: Epsilon dim-reg 5 denoms",
+        1/(x y ((2 - epsilon) x + (1 + epsilon) y - 1) ((3 + 2 epsilon) x - (1 - epsilon) y + epsilon) ((1 + epsilon^2) x + epsilon y - (2 - epsilon))), {x, y}},
+    {"MV-047: Sqrt/Pi coefficients",
+        1/(x y (Sqrt[2] x + Sqrt[3] y - Pi) (Sqrt[5] x - Sqrt[7] y + EulerGamma)), {x, y}},
+    {"MV-048: Complex number coefficients",
+        1/(x y ((2 + 3 I) x + (1 - I) y - (5 + 2 I)) ((1 + 4 I) x - (3 - 2 I) y + (7 - I))), {x, y}},
+
+    (* --- Combined extremes --- *)
+    {"MV-049: 2D 6 denoms moderate powers",
+        1/(x^2 y^2 (x + y - 1)^2 (x - y + 1)^2 (2 x + y - 3) (x + 2 y - 5)), {x, y}},
+    {"MV-050: 4D 10 denoms mixed",
+        1/(x y z w (x + y) (z + w) (x + y - 1) (z + w - 1) (x + z - 2) (y + w - 3)), {x, y, z, w}},
+    {"MV-051: 3D 6 denoms moderate powers",
+        1/(x^2 y^2 z^2 (x + y - 1)^2 (y + z - 2)^2 (x + z - 3)), {x, y, z}},
+    {"MV-052: 5D 9 denoms",
+        1/(x1 x2 x3 x4 x5 (x1 + x2 - 1) (x2 + x3 - 2) (x3 + x4 - 3) (x4 + x5 - 4)), {x1, x2, x3, x4, x5}},
+
+    (* --- Edge cases MV --- *)
+    {"MV-053: Already decomposed", 1/(x (x + y - 1)), {x, y}},
+    {"MV-054: Single denom", 1/(x + y - 1), {x, y}},
+    {"MV-055: Constant numerator", (a + b)/(x y (x + y - 1)), {x, y}},
+    {"MV-056: Minimal affine 2D", 1/((x - 1) (x + y + 1)), {x, y}},
+    {"MV-057: Minimal 2 denoms", 1/(x y), {x, y}},
+    {"MV-058: Minimal 3 denoms", 1/(x y z), {x, y, z}},
+
+    (* --- Numerator tests 2D --- *)
+    {"MV-059: 2D linear num", x/((x - y) y (x + y - 1) (x + y)), {x, y}},
+    {"MV-060: 2D quadratic num", x^2/((x - y) y (x + y - 1) (x + y)), {x, y}},
+    {"MV-061: 2D cubic num", x^3/((x - y) y (x + y - 1) (x + y)), {x, y}},
+    {"MV-062: 2D mixed num xy", x y/((x - y) (x + y - 1) (x + y)), {x, y}},
+    {"MV-063: 2D mixed num x^2 y", x^2 y/((x - y) y (x + y - 1) (x + y)), {x, y}},
+    {"MV-064: 2D mixed num x y^2", x y^2/((x - y) y (x + y - 1) (x + y)), {x, y}},
+    {"MV-065: 2D high power num", x^3 y^4/((x - y) y (x + y - 1) (x + y)), {x, y}},
+    {"MV-066: 2D sum num", (x + y)/((x - y) y (x + y - 1)), {x, y}},
+    {"MV-067: 2D sum num squared", (x + y)^2/((x - y) y (x + y - 1) (x + y)), {x, y}},
+
+    (* --- Numerator tests 3D --- *)
+    {"MV-068: 3D linear num x", x/(x y z (x + y + z - 1)), {x, y, z}},
+    {"MV-069: 3D linear num y", y/(x y z (x + y + z - 1)), {x, y, z}},
+    {"MV-070: 3D quadratic num", x^2/(x y z (x + y + z - 1)), {x, y, z}},
+    {"MV-071: 3D mixed num xy", x y/(x z (x + y - 1) (y + z - 1)), {x, y, z}},
+    {"MV-072: 3D mixed num xyz", x y z/((x + y) (y + z) (x + z) (x + y + z - 1)), {x, y, z}},
+    {"MV-073: 3D cubic num", x^3/(x y z (x + y - 1) (y + z - 1)), {x, y, z}},
+    {"MV-074: 3D sum num", (x + y + z)/(x y z (x + y + z - 1)), {x, y, z}},
+
+    (* --- Numerator tests 4D --- *)
+    {"MV-075: 4D linear num", x/(x y z w (x + y + z + w - 1)), {x, y, z, w}},
+    {"MV-076: 4D quadratic num", x^2/(x y z w (x + y + z + w - 1)), {x, y, z, w}},
+    {"MV-077: 4D mixed num xy", x y/(x z w (x + y - 1) (z + w - 1)), {x, y, z, w}},
+    {"MV-078: 4D mixed num xyzw", x y z w/((x + y) (z + w) (x + y - 1) (z + w - 1) (x + z)), {x, y, z, w}},
+
+    (* --- Numerator tests 5D --- *)
+    {"MV-079: 5D linear num", x1/(x1 x2 x3 x4 x5 (x1 + x2 + x3 + x4 + x5 - 1)), {x1, x2, x3, x4, x5}},
+    {"MV-080: 5D quadratic num", x1^2/(x1 x2 x3 x4 x5 (x1 + x2 + x3 + x4 + x5 - 1)), {x1, x2, x3, x4, x5}},
+    {"MV-081: 5D mixed num", x1 x2/(x1 x3 x4 x5 (x1 + x2 - 1) (x3 + x4 + x5 - 1)), {x1, x2, x3, x4, x5}},
+    {"MV-082: 5D sum num", (x1 + x2 + x3)/(x1 x2 x3 x4 x5 (x4 + x5 - 1)), {x1, x2, x3, x4, x5}},
+
+    (* --- Numerator with higher multiplicities --- *)
+    {"MV-083: 2D num with mult", x^2/((x - y)^2 y^2 (x + y - 1)), {x, y}},
+    {"MV-084: 2D num with high mult", x^3/((x - y)^3 y^2 (x + y - 1)^2), {x, y}},
+    {"MV-085: 3D num with mult", x y/((x - y)^2 z (x + y + z - 1)^2), {x, y, z}},
+
+    (* --- Edge cases with numerators --- *)
+    {"MV-086: Num equals denom factor", (x - y)/((x - y) y (x + y - 1)), {x, y}},
+    {"MV-087: Num cancels partially", (x - y)^2/((x - y)^3 y (x + y - 1)), {x, y}},
+    {"MV-088: Num is product of denoms", (x - y) y/((x - y)^2 y^2 (x + y - 1)), {x, y}}
+};
+
+
+TestDataMVNonLinear = {
+    (* --- Basic inhomogeneous shift relations in 2D --- *)
+    {"MVN-001: radial pair", 
+        1/((x^2 + y^2) (x^2 + y^2 + 1)), {x, y}},
+    {"MVN-002: radial triple", 
+        1/((x^2 + y^2) (x^2 + y^2 + 1) (x^2 + y^2 + 2)), {x, y}},
+    {"MVN-003: shifted pair", 
+        1/((1 + x^2 + y^2) (2 + x^2 + y^2)), {x, y}},
+    {"MVN-004: powers on radial pair", 
+        1/((x^2 + y^2)^2 (1 + x^2 + y^2)), {x, y}},
+    {"MVN-005: powers on shifted pair", 
+        1/((x^2 + y^2)^2 (1 + x^2 + y^2)^2), {x, y}},
+
+    (* --- Homogeneous algebraic relations --- *)
+    {"MVN-006: x^2-y^2 relation", 
+        1/((x^2 - y^2) (x - y) (x + y)), {x, y}},
+    {"MVN-007: x^2-y^2 with powers", 
+        1/((x^2 - y^2)^2 (x - y) (x + y)), {x, y}},
+    {"MVN-008: x^2-y^2 all powered", 
+        1/((x^2 - y^2)^2 (x - y)^2 (x + y)^2), {x, y}},
+    {"MVN-009: x^3-y^3 relation", 
+        1/((x^3 - y^3) (x - y) (x^2 + x y + y^2)), {x, y}},
+    {"MVN-010: x^4-y^4 relation", 
+        1/((x^4 - y^4) (x^2 - y^2) (x^2 + y^2)), {x, y}},
+
+    (* --- Mixed linear / non-linear --- *)
+    {"MVN-011: linear times radial pair", 
+        1/(x (x^2 + y^2) (1 + x^2 + y^2)), {x, y}},
+    {"MVN-012: linear+affine times radial pair", 
+        1/((x + y - 1) (x^2 + y^2) (1 + x^2 + y^2)), {x, y}},
+    {"MVN-013: two linear and one non-linear", 
+        1/(x y (x^2 + y^2 + 1)), {x, y}},
+    {"MVN-014: mixed product relation", 
+        1/(x (x^2 - y^2) (x - y) (x + y)), {x, y}},
+
+    (* --- Symbolic coefficients --- *)
+    {"MVN-015: symbolic quadratic pair", 
+        1/((a x^2 + b y^2) (1 + a x^2 + b y^2)), {x, y}},
+    {"MVN-016: symbolic shifted pair", 
+        1/((s x^2 + t y^2 + u) (s x^2 + t y^2 + u + 1)), {x, y}},
+    {"MVN-017: symbolic mixed quartic", 
+        1/((a x^2 + b x y + c y^2) (1 + a x^2 + b x y + c y^2)), {x, y}},
+
+    (* --- 3D radial / shifted relations --- *)
+    {"MVN-018: 3D radial pair", 
+        1/((x^2 + y^2 + z^2) (1 + x^2 + y^2 + z^2)), {x, y, z}},
+    {"MVN-019: 3D radial triple", 
+        1/((x^2 + y^2 + z^2) (1 + x^2 + y^2 + z^2) (2 + x^2 + y^2 + z^2)), {x, y, z}},
+    {"MVN-020: 3D mixed linear/radial", 
+        1/(x (x^2 + y^2 + z^2) (1 + x^2 + y^2 + z^2)), {x, y, z}},
+    {"MVN-021: 3D powers on radial pair", 
+        1/((x^2 + y^2 + z^2)^2 (1 + x^2 + y^2 + z^2)), {x, y, z}},
+
+    (* --- Numerator tests in 2D --- *)
+    {"MVN-022: radial numerator cancels partially", 
+        (x^2 + y^2)/((x^2 + y^2) (1 + x^2 + y^2)), {x, y}},
+    {"MVN-023: linear numerator on radial pair", 
+        x/((x^2 + y^2) (1 + x^2 + y^2)), {x, y}},
+    {"MVN-024: mixed numerator on shifted pair", 
+        x y/((x^2 + y^2) (1 + x^2 + y^2)), {x, y}},
+    {"MVN-025: numerator equals algebraic factor", 
+        (x^2 - y^2)/((x^2 - y^2) (x - y) (x + y)), {x, y}},
+
+    (* --- Numerator tests in 3D --- *)
+    {"MVN-026: 3D linear numerator", 
+        x/((x^2 + y^2 + z^2) (1 + x^2 + y^2 + z^2)), {x, y, z}},
+    {"MVN-027: 3D quadratic numerator", 
+        x^2/((x^2 + y^2 + z^2) (1 + x^2 + y^2 + z^2)), {x, y, z}},
+    {"MVN-028: 3D mixed numerator", 
+        x y z/((x^2 + y^2 + z^2) (1 + x^2 + y^2 + z^2)), {x, y, z}},
+
+    (* --- Edge cases --- *)
+    {"MVN-029: single non-linear denominator", 
+        1/(1 + x^2 + y^2), {x, y}},
+    {"MVN-030: already simple mixed pair", 
+        1/(x (1 + x^2 + y^2)), {x, y}},
+    {"MVN-031: one denominator powered", 
+        1/(1 + x^2 + y^2)^3, {x, y}},
+    {"MVN-032: quartic pair", 
+        1/((x^4 + y^4) (1 + x^4 + y^4)), {x, y}}
+};
+
+
+(* ::Subsubsection::Closed:: *)
+(*Test*)
+
+
+Print[""];
+Print["============================================"];
+Print["  SECTION 2: Multivariate Linear Denoms     "];
+Print["============================================"];
+
+ResultsMV = MapIndexed[
+    {TestLinApartMV[#1], First[#2]} &,
+    Map[Append[#,"Method"->"Leinartas"]&,TestDataMVLinear]
 ];
 
 PassedMV = Count[ResultsMV, {1, _}];
@@ -922,11 +1203,415 @@ FailedTestsMV = TestDataMV[[FailedIndicesMV, 1]];
 Print[""];
 Print["--------------------------------------------"];
 Print["  Section 2 Summary:"];
-Print["  Total:  ", Length[TestDataMV]];
+Print["  Total:  ", Length[TestDataMVLinear]];
 Print["  Passed: ", PassedMV];
 Print["  Failed: ", FailedMV];
 If[FailedTestsMV =!= {},
     Print["  Failed tests: ", FailedTestsMV]
+];
+Print["--------------------------------------------"];
+
+
+Print[""];
+Print["============================================"];
+Print["  SECTION 3: Multivariate Non-Linear Denoms "];
+Print["============================================"];
+
+ResultsMVNonLinear = MapIndexed[
+    {TestLinApartMV[#1], First[#2]} &,
+    Map[
+        Append[#, "Method" -> "Leinartas"] &,
+        TestDataMVNonLinear
+    ]
+];
+
+PassedMVNonLinear = Count[ResultsMVNonLinear, {1, _}];
+FailedMVNonLinear = Count[ResultsMVNonLinear, {0, _}];
+FailedIndicesMVNonLinear = Cases[ResultsMVNonLinear, {0, idx_} :> idx];
+FailedTestsMVNonLinear = TestDataMVNonLinear[[FailedIndicesMVNonLinear, 1]];
+
+Print[""];
+Print["--------------------------------------------"];
+Print["  Section 3 Summary:"];
+Print["  Total:  ", Length[TestDataMVNonLinear]];
+Print["  Passed: ", PassedMVNonLinear];
+Print["  Failed: ", FailedMVNonLinear];
+If[FailedTestsMVNonLinear =!= {},
+    Print["  Failed tests: ", FailedTestsMVNonLinear]
+];
+Print["--------------------------------------------"];
+
+
+(* ::Subsection:: *)
+(*Gr\[ODoubleDot]bner*)
+
+
+(* ::Subsubsection:: *)
+(*PreTest*)
+
+
+expr = 1/(x1 x2 (a x1 + x2 - Sqrt[c] Log[x]) (x1 + b x2 - 1));
+vars = {x1, x2};
+
+GroebnerApart[expr, vars, True, True]
+expr - % // Together
+
+
+expr = 1/(x y (x + y - 1));
+vars = {x, y};
+
+LinApart[expr, vars, "Method" -> "Groebner"]
+expr - % // Together
+
+
+expr = (2 y - x)/(y (x + y) (y - x));
+vars = {x, y};
+
+LinApart[expr, vars, "Method" -> "Groebner"]
+expr - % // Together
+
+
+expr = 1/(x y (x + y) (x - y));
+vars = {x, y};
+
+LinApart[expr, vars, "Method" -> "Groebner"]
+expr - % // Together
+
+
+expr = 1/(x^2 y (x + y)^2);
+vars = {x, y};
+
+LinApart[expr, vars, "Method" -> "Groebner"]
+expr - % // Together
+
+
+expr = 1/(x y (a x + y - 1) (x + b y - 1));
+vars = {x, y};
+
+LinApart[expr, vars, "Method" -> "Groebner"]
+expr - % // Together
+
+
+expr = 1/(x1 x2 (a x1 + x2 - Sqrt[c] Log[x]) (x1 + b x2 - 1));
+vars = {x1, x2};
+
+LinApart[expr, vars, "Method" -> "Groebner"]
+expr - % // Together
+
+
+expr = 1/(x y ((x + y)/(1 + b)) (x - y + 1));
+vars = {x, y};
+
+LinApart[expr, vars, "Method" -> "Groebner"]
+expr - % // Together
+
+
+expr = 1/((x^2 + y^2) (x^2 + y^2 + 1));
+vars = {x, y};
+
+LinApart[expr, vars, "Method" -> "Groebner"]
+expr - % // Together
+
+
+(* ::Subsubsection::Closed:: *)
+(*Examples*)
+
+
+TestDataMVLinear = {
+    (* --- Basic 2D --- *)
+    {"MV-001: 3 non-central", 1/(x y (x + y - 1)), {x, y}},
+    {"MV-002: 3 central", 1/(x y (x + y)), {x, y}},
+    {"MV-003: 4 non-central", 1/(x y (x + y - 1) (x - y + 2)), {x, y}},
+    {"MV-004: 5 non-central", 1/(x y (x + y - 1) (x - y + 2) (2 x + y - 3)), {x, y}},
+    {"MV-005: 4 central", 1/(x y (x + y) (x - y)), {x, y}},
+    {"MV-006: 6 central", 1/(x y (x + y) (x - y) (2 x + y) (x + 2 y)), {x, y}},
+
+    (* --- Higher powers 2D --- *)
+    {"MV-007: Power on x", 1/(x^2 y (x + y - 1)), {x, y}},
+    {"MV-008: Power on y", 1/(x y^2 (x + y - 1)), {x, y}},
+    {"MV-009: Power on non-central", 1/(x y (x + y - 1)^2), {x, y}},
+    {"MV-010: Multiple powers", 1/(x^3 y^2 (x + y - 1)^2), {x, y}},
+    {"MV-011: 5 denoms powers", 1/(x^2 y (x + y - 1)^2 (x - y + 2)), {x, y}},
+    {"MV-012: Central with powers", 1/(x^2 y (x + y)^2), {x, y}},
+
+    (* --- Mixed central/non-central --- *)
+    {"MV-013: Mixed 6 denoms", 1/(x y (x + y) (x - y) (x + y - 1) (x - y + 1)), {x, y}},
+    {"MV-014: Mixed 4 denoms", 1/(x y (x + y) (x + y - 1)), {x, y}},
+
+    (* --- Symbolic coefficients --- *)
+    {"MV-015: Symbolic 4 denoms", 1/(x y (a x + y - 1) (x + b y - 1)), {x, y}},
+    {"MV-016: Mandelstam-style", 1/((s - x) (t - y) (s + t - x - y - 1)), {x, y}},
+    {"MV-017: Symbolic 4 denoms heavy", 1/(x y (s x + t y - 1) (u x - v y + 1)), {x, y}},
+
+    (* --- 3D tests --- *)
+    {"MV-018: 3D 4 non-central", 1/(x y z (x + y + z - 1)), {x, y, z}},
+    {"MV-019: 3D 6 non-central", 1/(x y z (x + y - 1) (y + z - 2) (x + z - 3)), {x, y, z}},
+    {"MV-020: 3D 6 symmetric", 1/(x y z (x + y - 1) (y + z - 1) (x + z - 1)), {x, y, z}},
+    {"MV-021: 3D higher powers", 1/(x^2 y z^2 (x + y + z - 1)), {x, y, z}},
+    {"MV-022: 3D 4 central", 1/(x y z (x + y + z)), {x, y, z}},
+    {"MV-023: 3D 5 denoms", 1/(x y z (x + y - 1) (y + z - 1)), {x, y, z}},
+
+    (* --- 4D tests --- *)
+    {"MV-024: 4D 5 non-central", 1/(x y z w (x + y + z + w - 1)), {x, y, z, w}},
+
+    (* --- Stress tests 2D --- *)
+    {"MV-025: 7 denoms mixed",
+        1/(x y (x + y) (x - y) (x + y - 1) (x - y + 1) (2 x + 3 y - 5)), {x, y}},
+    {"MV-026: High powers 4 denoms",
+        1/(x^3 y^3 (x + y - 1)^3 (x - y + 1)^2), {x, y}},
+    {"MV-027: 6 non-central denoms",
+        1/(x y (x + y - 1) (x - y + 1) (2 x + y - 3) (x + 3 y - 2)), {x, y}},
+    {"MV-028: Near-degenerate",
+        1/(x (x + y) (x + y - 1) (x + 2 y) (x + 2 y - 1)), {x, y}},
+
+    (* --- Stress tests 3D --- *)
+    {"MV-029: 3D 7 denoms mixed",
+        1/(x y z (x + y) (y + z - 1) (x + z - 2) (x + y + z - 3)), {x, y, z}},
+    {"MV-030: 3D 5 denoms powers",
+        1/(x^2 y^2 z (x + y + z - 1)^2 (x - y + z + 1)), {x, y, z}},
+    {"MV-031: 3D 8 denoms",
+        1/(x y z (x + y - 1) (y + z - 1) (x + z - 1) (x + y + z - 2) (x - y + z + 1)), {x, y, z}},
+
+    (* --- Stress tests 4D --- *)
+    {"MV-032: 4D 6 denoms", 1/(x y z w (x + y - 1) (z + w - 1)), {x, y, z, w}},
+    {"MV-033: 4D 7 denoms",
+        1/(x y z w (x + y + z - 1) (y + z + w - 2) (x + w - 1)), {x, y, z, w}},
+
+    (* --- Extreme tests --- *)
+    {"MV-034: 2D 8 denoms",
+        1/(x y (x + y - 1) (x - y + 2) (2 x + y - 3) (x + 3 y - 4) (3 x - y + 5) (x + y - 7)), {x, y}},
+    {"MV-035: 2D 10 denoms",
+        1/(x y (x + y - 1) (x - y + 2) (2 x + y - 3) (x + 3 y - 4) (3 x - y + 5) (x + y - 7) (2 x - 3 y + 1) (4 x + y - 2)), {x, y}},
+    {"MV-036: 2D 9 denoms moderate extreme",
+        1/(x y (x + y - 1) (x - y + 2) (2 x + y - 3) (x + 3 y - 4) (3 x - y + 5) (2 x - 3 y + 1) (4 x + y - 2)), {x, y}},
+
+    (* --- Very high powers --- *)
+    {"MV-037: Powers (5,4,3)", 1/(x^5 y^4 (x + y - 1)^3), {x, y}},
+    {"MV-038: Powers (6,5,4)", 1/(x^6 y^5 (x + y - 1)^4), {x, y}},
+    {"MV-039: Powers (7,6,5)", 1/(x^7 y^6 (x + y - 1)^5), {x, y}},
+    {"MV-040: 4 denoms powers (4,3,3,3)",
+        1/(x^4 y^3 (x + y - 1)^3 (x - y + 2)^3), {x, y}},
+    {"MV-041: 3D powers (4,3,3,3)", 1/(x^4 y^3 z^3 (x + y + z - 1)^3), {x, y, z}},
+    {"MV-042: 3D powers (5,4,4,3)", 1/(x^5 y^4 z^4 (x + y + z - 1)^3), {x, y, z}},
+
+    (* --- Many variables --- *)
+    {"MV-043: 5D 6 denoms",
+        1/(x1 x2 x3 x4 x5 (x1 + x2 + x3 + x4 + x5 - 1)), {x1, x2, x3, x4, x5}},
+    {"MV-044: 6D 7 denoms",
+        1/(x1 x2 x3 x4 x5 x6 (x1 + x2 + x3 + x4 + x5 + x6 - 1)), {x1, x2, x3, x4, x5, x6}},
+    {"MV-045: 7D 8 denoms",
+        1/(x1 x2 x3 x4 x5 x6 x7 (x1 + x2 + x3 + x4 + x5 + x6 + x7 - 1)), {x1, x2, x3, x4, x5, x6, x7}},
+
+    (* --- Complex symbolic coefficients --- *)
+    {"MV-046: Epsilon dim-reg 5 denoms",
+        1/(x y ((2 - epsilon) x + (1 + epsilon) y - 1) ((3 + 2 epsilon) x - (1 - epsilon) y + epsilon) ((1 + epsilon^2) x + epsilon y - (2 - epsilon))), {x, y}},
+    {"MV-047: Sqrt/Pi coefficients",
+        1/(x y (Sqrt[2] x + Sqrt[3] y - Pi) (Sqrt[5] x - Sqrt[7] y + EulerGamma)), {x, y}},
+    {"MV-048: Complex number coefficients",
+        1/(x y ((2 + 3 I) x + (1 - I) y - (5 + 2 I)) ((1 + 4 I) x - (3 - 2 I) y + (7 - I))), {x, y}},
+
+    (* --- Combined extremes --- *)
+    {"MV-049: 2D 6 denoms moderate powers",
+        1/(x^2 y^2 (x + y - 1)^2 (x - y + 1)^2 (2 x + y - 3) (x + 2 y - 5)), {x, y}},
+    {"MV-050: 4D 10 denoms mixed",
+        1/(x y z w (x + y) (z + w) (x + y - 1) (z + w - 1) (x + z - 2) (y + w - 3)), {x, y, z, w}},
+    {"MV-051: 3D 6 denoms moderate powers",
+        1/(x^2 y^2 z^2 (x + y - 1)^2 (y + z - 2)^2 (x + z - 3)), {x, y, z}},
+    {"MV-052: 5D 9 denoms",
+        1/(x1 x2 x3 x4 x5 (x1 + x2 - 1) (x2 + x3 - 2) (x3 + x4 - 3) (x4 + x5 - 4)), {x1, x2, x3, x4, x5}},
+
+    (* --- Edge cases MV --- *)
+    {"MV-053: Already decomposed", 1/(x (x + y - 1)), {x, y}},
+    {"MV-054: Single denom", 1/(x + y - 1), {x, y}},
+    {"MV-055: Constant numerator", (a + b)/(x y (x + y - 1)), {x, y}},
+    {"MV-056: Minimal affine 2D", 1/((x - 1) (x + y + 1)), {x, y}},
+    {"MV-057: Minimal 2 denoms", 1/(x y), {x, y}},
+    {"MV-058: Minimal 3 denoms", 1/(x y z), {x, y, z}},
+
+    (* --- Numerator tests 2D --- *)
+    {"MV-059: 2D linear num", x/((x - y) y (x + y - 1) (x + y)), {x, y}},
+    {"MV-060: 2D quadratic num", x^2/((x - y) y (x + y - 1) (x + y)), {x, y}},
+    {"MV-061: 2D cubic num", x^3/((x - y) y (x + y - 1) (x + y)), {x, y}},
+    {"MV-062: 2D mixed num xy", x y/((x - y) (x + y - 1) (x + y)), {x, y}},
+    {"MV-063: 2D mixed num x^2 y", x^2 y/((x - y) y (x + y - 1) (x + y)), {x, y}},
+    {"MV-064: 2D mixed num x y^2", x y^2/((x - y) y (x + y - 1) (x + y)), {x, y}},
+    {"MV-065: 2D high power num", x^3 y^4/((x - y) y (x + y - 1) (x + y)), {x, y}},
+    {"MV-066: 2D sum num", (x + y)/((x - y) y (x + y - 1)), {x, y}},
+    {"MV-067: 2D sum num squared", (x + y)^2/((x - y) y (x + y - 1) (x + y)), {x, y}},
+
+    (* --- Numerator tests 3D --- *)
+    {"MV-068: 3D linear num x", x/(x y z (x + y + z - 1)), {x, y, z}},
+    {"MV-069: 3D linear num y", y/(x y z (x + y + z - 1)), {x, y, z}},
+    {"MV-070: 3D quadratic num", x^2/(x y z (x + y + z - 1)), {x, y, z}},
+    {"MV-071: 3D mixed num xy", x y/(x z (x + y - 1) (y + z - 1)), {x, y, z}},
+    {"MV-072: 3D mixed num xyz", x y z/((x + y) (y + z) (x + z) (x + y + z - 1)), {x, y, z}},
+    {"MV-073: 3D cubic num", x^3/(x y z (x + y - 1) (y + z - 1)), {x, y, z}},
+    {"MV-074: 3D sum num", (x + y + z)/(x y z (x + y + z - 1)), {x, y, z}},
+
+    (* --- Numerator tests 4D --- *)
+    {"MV-075: 4D linear num", x/(x y z w (x + y + z + w - 1)), {x, y, z, w}},
+    {"MV-076: 4D quadratic num", x^2/(x y z w (x + y + z + w - 1)), {x, y, z, w}},
+    {"MV-077: 4D mixed num xy", x y/(x z w (x + y - 1) (z + w - 1)), {x, y, z, w}},
+    {"MV-078: 4D mixed num xyzw", x y z w/((x + y) (z + w) (x + y - 1) (z + w - 1) (x + z)), {x, y, z, w}},
+
+    (* --- Numerator tests 5D --- *)
+    {"MV-079: 5D linear num", x1/(x1 x2 x3 x4 x5 (x1 + x2 + x3 + x4 + x5 - 1)), {x1, x2, x3, x4, x5}},
+    {"MV-080: 5D quadratic num", x1^2/(x1 x2 x3 x4 x5 (x1 + x2 + x3 + x4 + x5 - 1)), {x1, x2, x3, x4, x5}},
+    {"MV-081: 5D mixed num", x1 x2/(x1 x3 x4 x5 (x1 + x2 - 1) (x3 + x4 + x5 - 1)), {x1, x2, x3, x4, x5}},
+    {"MV-082: 5D sum num", (x1 + x2 + x3)/(x1 x2 x3 x4 x5 (x4 + x5 - 1)), {x1, x2, x3, x4, x5}},
+
+    (* --- Numerator with higher multiplicities --- *)
+    {"MV-083: 2D num with mult", x^2/((x - y)^2 y^2 (x + y - 1)), {x, y}},
+    {"MV-084: 2D num with high mult", x^3/((x - y)^3 y^2 (x + y - 1)^2), {x, y}},
+    {"MV-085: 3D num with mult", x y/((x - y)^2 z (x + y + z - 1)^2), {x, y, z}},
+
+    (* --- Edge cases with numerators --- *)
+    {"MV-086: Num equals denom factor", (x - y)/((x - y) y (x + y - 1)), {x, y}},
+    {"MV-087: Num cancels partially", (x - y)^2/((x - y)^3 y (x + y - 1)), {x, y}},
+    {"MV-088: Num is product of denoms", (x - y) y/((x - y)^2 y^2 (x + y - 1)), {x, y}}
+};
+
+
+TestDataMVNonLinear = {
+    (* --- Basic inhomogeneous shift relations in 2D --- *)
+    {"MVN-001: radial pair", 
+        1/((x^2 + y^2) (x^2 + y^2 + 1)), {x, y}},
+    {"MVN-002: radial triple", 
+        1/((x^2 + y^2) (x^2 + y^2 + 1) (x^2 + y^2 + 2)), {x, y}},
+    {"MVN-003: shifted pair", 
+        1/((1 + x^2 + y^2) (2 + x^2 + y^2)), {x, y}},
+    {"MVN-004: powers on radial pair", 
+        1/((x^2 + y^2)^2 (1 + x^2 + y^2)), {x, y}},
+    {"MVN-005: powers on shifted pair", 
+        1/((x^2 + y^2)^2 (1 + x^2 + y^2)^2), {x, y}},
+
+    (* --- Homogeneous algebraic relations --- *)
+    {"MVN-006: x^2-y^2 relation", 
+        1/((x^2 - y^2) (x - y) (x + y)), {x, y}},
+    {"MVN-007: x^2-y^2 with powers", 
+        1/((x^2 - y^2)^2 (x - y) (x + y)), {x, y}},
+    {"MVN-008: x^2-y^2 all powered", 
+        1/((x^2 - y^2)^2 (x - y)^2 (x + y)^2), {x, y}},
+    {"MVN-009: x^3-y^3 relation", 
+        1/((x^3 - y^3) (x - y) (x^2 + x y + y^2)), {x, y}},
+    {"MVN-010: x^4-y^4 relation", 
+        1/((x^4 - y^4) (x^2 - y^2) (x^2 + y^2)), {x, y}},
+
+    (* --- Mixed linear / non-linear --- *)
+    {"MVN-011: linear times radial pair", 
+        1/(x (x^2 + y^2) (1 + x^2 + y^2)), {x, y}},
+    {"MVN-012: linear+affine times radial pair", 
+        1/((x + y - 1) (x^2 + y^2) (1 + x^2 + y^2)), {x, y}},
+    {"MVN-013: two linear and one non-linear", 
+        1/(x y (x^2 + y^2 + 1)), {x, y}},
+    {"MVN-014: mixed product relation", 
+        1/(x (x^2 - y^2) (x - y) (x + y)), {x, y}},
+
+    (* --- Symbolic coefficients --- *)
+    {"MVN-015: symbolic quadratic pair", 
+        1/((a x^2 + b y^2) (1 + a x^2 + b y^2)), {x, y}},
+    {"MVN-016: symbolic shifted pair", 
+        1/((s x^2 + t y^2 + u) (s x^2 + t y^2 + u + 1)), {x, y}},
+    {"MVN-017: symbolic mixed quartic", 
+        1/((a x^2 + b x y + c y^2) (1 + a x^2 + b x y + c y^2)), {x, y}},
+
+    (* --- 3D radial / shifted relations --- *)
+    {"MVN-018: 3D radial pair", 
+        1/((x^2 + y^2 + z^2) (1 + x^2 + y^2 + z^2)), {x, y, z}},
+    {"MVN-019: 3D radial triple", 
+        1/((x^2 + y^2 + z^2) (1 + x^2 + y^2 + z^2) (2 + x^2 + y^2 + z^2)), {x, y, z}},
+    {"MVN-020: 3D mixed linear/radial", 
+        1/(x (x^2 + y^2 + z^2) (1 + x^2 + y^2 + z^2)), {x, y, z}},
+    {"MVN-021: 3D powers on radial pair", 
+        1/((x^2 + y^2 + z^2)^2 (1 + x^2 + y^2 + z^2)), {x, y, z}},
+
+    (* --- Numerator tests in 2D --- *)
+    {"MVN-022: radial numerator cancels partially", 
+        (x^2 + y^2)/((x^2 + y^2) (1 + x^2 + y^2)), {x, y}},
+    {"MVN-023: linear numerator on radial pair", 
+        x/((x^2 + y^2) (1 + x^2 + y^2)), {x, y}},
+    {"MVN-024: mixed numerator on shifted pair", 
+        x y/((x^2 + y^2) (1 + x^2 + y^2)), {x, y}},
+    {"MVN-025: numerator equals algebraic factor", 
+        (x^2 - y^2)/((x^2 - y^2) (x - y) (x + y)), {x, y}},
+
+    (* --- Numerator tests in 3D --- *)
+    {"MVN-026: 3D linear numerator", 
+        x/((x^2 + y^2 + z^2) (1 + x^2 + y^2 + z^2)), {x, y, z}},
+    {"MVN-027: 3D quadratic numerator", 
+        x^2/((x^2 + y^2 + z^2) (1 + x^2 + y^2 + z^2)), {x, y, z}},
+    {"MVN-028: 3D mixed numerator", 
+        x y z/((x^2 + y^2 + z^2) (1 + x^2 + y^2 + z^2)), {x, y, z}},
+
+    (* --- Edge cases --- *)
+    {"MVN-029: single non-linear denominator", 
+        1/(1 + x^2 + y^2), {x, y}},
+    {"MVN-030: already simple mixed pair", 
+        1/(x (1 + x^2 + y^2)), {x, y}},
+    {"MVN-031: one denominator powered", 
+        1/(1 + x^2 + y^2)^3, {x, y}},
+    {"MVN-032: quartic pair", 
+        1/((x^4 + y^4) (1 + x^4 + y^4)), {x, y}}
+};
+
+
+(* ::Subsubsection::Closed:: *)
+(*Test*)
+
+
+Print[""];
+Print["============================================"];
+Print["  SECTION 2: Multivariate Linear Denoms     "];
+Print["============================================"];
+
+ResultsMV = MapIndexed[
+    {TestLinApartMV[#1], First[#2]} &,
+    Map[Append[#,"Method"->"Leinartas"]&,TestDataMVLinear]
+];
+
+PassedMV = Count[ResultsMV, {1, _}];
+FailedMV = Count[ResultsMV, {0, _}];
+FailedIndicesMV = Cases[ResultsMV, {0, idx_} :> idx];
+FailedTestsMV = TestDataMV[[FailedIndicesMV, 1]];
+
+Print[""];
+Print["--------------------------------------------"];
+Print["  Section 2 Summary:"];
+Print["  Total:  ", Length[TestDataMVLinear]];
+Print["  Passed: ", PassedMV];
+Print["  Failed: ", FailedMV];
+If[FailedTestsMV =!= {},
+    Print["  Failed tests: ", FailedTestsMV]
+];
+Print["--------------------------------------------"];
+
+
+Print[""];
+Print["============================================"];
+Print["  SECTION 3: Multivariate Non-Linear Denoms "];
+Print["============================================"];
+
+ResultsMVNonLinear = MapIndexed[
+    {TestLinApartMV[#1], First[#2]} &,
+    Map[
+        Append[#, "Method" -> "Leinartas"] &,
+        TestDataMVNonLinear
+    ]
+];
+
+PassedMVNonLinear = Count[ResultsMVNonLinear, {1, _}];
+FailedMVNonLinear = Count[ResultsMVNonLinear, {0, _}];
+FailedIndicesMVNonLinear = Cases[ResultsMVNonLinear, {0, idx_} :> idx];
+FailedTestsMVNonLinear = TestDataMVNonLinear[[FailedIndicesMVNonLinear, 1]];
+
+Print[""];
+Print["--------------------------------------------"];
+Print["  Section 3 Summary:"];
+Print["  Total:  ", Length[TestDataMVNonLinear]];
+Print["  Passed: ", PassedMVNonLinear];
+Print["  Failed: ", FailedMVNonLinear];
+If[FailedTestsMVNonLinear =!= {},
+    Print["  Failed tests: ", FailedTestsMVNonLinear]
 ];
 Print["--------------------------------------------"];
 
@@ -1230,6 +1915,4 @@ If[TotalFailed > 0,
 Print["============================================"];
 
 If[ScriptMode && TotalFailed > 0, Exit[1]];
-
-
 

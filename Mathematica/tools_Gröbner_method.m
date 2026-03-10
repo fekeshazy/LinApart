@@ -479,7 +479,7 @@ ExprToApartForm::qVarsNotSymbols = "The following entries in qVars are not Symbo
 ExprToApartForm::wrongOption = "Problem with option `1`, OptionName or OptionValue not recognized.";
 
 
-(* ::Section::Closed:: *)
+(* ::Section:: *)
 (*GroebnerReduce*)
 
 
@@ -643,7 +643,8 @@ GroebnerReduce[expr_, groebnerBasis_List, varOrder_List, options:OptionsPattern[
         expr,
         groebnerBasis,
         varOrder,
-        MonomialOrder -> DegreeReverseLexicographic
+        MonomialOrder -> DegreeReverseLexicographic,
+        CoefficientDomain -> RationalFunctions
     ] /; !OptionValue["Iterated"]
 
 (* Iterated reduction. *)
@@ -673,11 +674,11 @@ GroebnerReduce::unexpectedQFactors = "Option \"QFactors\" may only be used toget
 
 
 (* ::Section::Closed:: *)
-(*MakeParamatersSymbolic*)
+(*MakeParametersSymbolic*)
 
 
 (*
-  MakeParamatersSymbolic[expr, vars]
+  MakeParametersSymbolic[expr, vars]
 
   Replaces parameter-dependent but var-independent non-polynomial
   sub-expressions by temporary symbols.
@@ -706,7 +707,7 @@ GroebnerReduce::unexpectedQFactors = "Option \"QFactors\" may only be used toget
       - backwardRules  maps temporary symbols back to the original pieces
 
   Example:
-    MakeParamatersSymbolic[
+    MakeParametersSymbolic[
         x + Sqrt[s t] y + z/(1 + b),
         {x, y}
     ]
@@ -727,26 +728,26 @@ GroebnerReduce::unexpectedQFactors = "Option \"QFactors\" may only be used toget
       introduces temporary symbols.
 *)
 
-ClearAll[MakeParamatersSymbolic]
+ClearAll[MakeParametersSymbolic]
 
-MakeParamatersSymbolic[args___] := Null /; !CheckArguments[MakeParamatersSymbolic[args], 2]
+MakeParametersSymbolic[args___] := Null /; !CheckArguments[MakeParametersSymbolic[args], 2]
 
-MakeParamatersSymbolic[expr_, vars_] := (
-    Message[MakeParamatersSymbolic::notList, vars];
+MakeParametersSymbolic[expr_, vars_] := (
+    Message[MakeParametersSymbolic::notList, vars];
     $Failed
 ) /; !ListQ[vars]
 
-MakeParamatersSymbolic[expr_, vars_List] := (
-    Message[MakeParamatersSymbolic::emptyVars];
+MakeParametersSymbolic[expr_, vars_List] := (
+    Message[MakeParametersSymbolic::emptyVars];
     $Failed
 ) /; Length[vars] === 0
 
-MakeParamatersSymbolic[expr_, vars_List] := (
-    Message[MakeParamatersSymbolic::varsNotSymbols, Select[vars, Head[#] =!= Symbol &]];
+MakeParametersSymbolic[expr_, vars_List] := (
+    Message[MakeParametersSymbolic::varsNotSymbols, Select[vars, Head[#] =!= Symbol &]];
     $Failed
 ) /; !And @@ (Head[#] === Symbol & /@ vars)
 
-MakeParamatersSymbolic[expr_, vars_List] := Module[
+MakeParametersSymbolic[expr_, vars_List] := Module[
     {
         expanded,
         subExprs,
@@ -838,13 +839,13 @@ MakeParamatersSymbolic[expr_, vars_List] := Module[
     {newExpr, forwardRules, backwardRules}
 ]
 
-MakeParamatersSymbolic::notList = "Second argument `1` must be a list of variables.";
-MakeParamatersSymbolic::emptyVars = "Variable list must not be empty.";
-MakeParamatersSymbolic::varsNotSymbols = "The following variables are not Symbols: `1`.";
+MakeParametersSymbolic::notList = "Second argument `1` must be a list of variables.";
+MakeParametersSymbolic::emptyVars = "Variable list must not be empty.";
+MakeParametersSymbolic::varsNotSymbols = "The following variables are not Symbols: `1`.";
 
 
-(* ::Section::Closed:: *)
-(*GrobnerApart*)
+(* ::Section:: *)
+(*GroebnerApart*)
 
 
 (*
@@ -894,306 +895,211 @@ NeedsGroebnerReductionQ::varsNotSymbols = "The following variables are not Symbo
 
 
 (*
-  GroebnerApart[expr, vars]
-  GroebnerApart[expr, vars, options]
+  GroebnerApart[term, vars, iterativeGroebner, useParameterSymbolization]
 
-  Multivariate partial fraction decomposition using the Gr\[ODoubleDot]bner-basis
-  approach.
+  Reduces a single additive term with the Gr\[ODoubleDot]bner-based multivariate
+  partial fraction method.
 
-  The algorithm works term by term:
-    1. Expand the expression into additive terms.
-    2. Terms with at most Length[vars] variable-dependent denominator
-       factors are already minimal and are kept unchanged.
-    3. Terms with more than Length[vars] denominator factors are mapped
-       to q-space.
-    4. A local Gr\[ODoubleDot]bner basis is computed for the denominator set of that term.
-    5. The term is reduced either
-         - in one shot, or
-         - iteratively by introducing q-factors one at a time.
-    6. The result is mapped back from q-space.
+  The function:
+    1. Checks whether the term actually needs Gr\[ODoubleDot]bner reduction.
+    2. Builds the local denominator set and inverse q-variables.
+    3. Optionally makes non-polynomial parameter-dependent pieces symbolic.
+    4. Clears remaining parameter denominators in the denominator set.
+    5. Builds the local Gr\[ODoubleDot]bner ideal and computes a Gr\[ODoubleDot]bner basis.
+    6. Converts the term to q-space.
+    7. Reduces either iteratively or in one shot.
+    8. Substitutes back from q-space.
+    9. Restores the original parameter expressions.
 
   Parameters:
-    expr - Rational expression
-    vars - List of variables
-
-  Options:
-    "Iterated" -> True|False
-      False : reduce the full q-space expression in one shot
-      True  : introduce q-factors one at a time and reduce after each step
+    term                      - A single additive term.
+    vars                      - List of variables.
+    iterativeGroebner         - True/False, whether to use iterated q-factor reduction.
+    useParameterSymbolization - True/False, whether to replace non-polynomial
+                                parameter-dependent coefficient pieces by
+                                temporary symbols before Gr\[ODoubleDot]bner computation.
 
   Returns:
-    A Gr\[ODoubleDot]bner-based multivariate partial fraction decomposition of expr.
-
-  Notes:
-    - A local denominator set is used for each additive term.
-    - Parameter-dependent non-polynomial coefficient expressions are first
-      replaced by temporary symbols via MakeParamatersSymbolic.
-    - Remaining parameter denominators are cleared before the Gr\[ODoubleDot]bner basis
-      is computed.
+    The reduced term, or $Failed on error.
 *)
 
 ClearAll[GroebnerApart]
 
-Options[GroebnerApart] = {
-    "Iterated" -> True
-};
+GroebnerApart[args___] := Null /; !CheckArguments[GroebnerApart[args], 4]
 
-GroebnerApart[args___] := Null /; !CheckArguments[GroebnerApart[args], {2, 3}]
-
-GroebnerApart[expr_, vars_, options:OptionsPattern[]] := (
-    Message[GroebnerApart::notList, vars];
+GroebnerApart[term_, vars_, iterativeGroebner_, useParameterSymbolization_] := (
+    Message[GroebnerApart::notList, vars, 2];
     $Failed
 ) /; !ListQ[vars]
 
-GroebnerApart[expr_, vars_List, options:OptionsPattern[]] := (
+GroebnerApart[term_, vars_List, iterativeGroebner_, useParameterSymbolization_] := (
     Message[GroebnerApart::emptyVars];
     $Failed
 ) /; Length[vars] === 0
 
-GroebnerApart[expr_, vars_List, options:OptionsPattern[]] := (
+GroebnerApart[term_, vars_List, iterativeGroebner_, useParameterSymbolization_] := (
     Message[GroebnerApart::varsNotSymbols, Select[vars, Head[#] =!= Symbol &]];
     $Failed
 ) /; !And @@ (Head[#] === Symbol & /@ vars)
 
-GroebnerApart[expr_, vars_List, options:OptionsPattern[]] := (
-    Message[GroebnerApart::wrongOption, "Iterated"];
+GroebnerApart[term_, vars_List, iterativeGroebner_, useParameterSymbolization_] := (
+    Message[GroebnerApart::notBoolean, iterativeGroebner, 3];
     $Failed
-) /; !MemberQ[{True, False}, OptionValue["Iterated"]]
+) /; !MemberQ[{True, False}, iterativeGroebner]
 
-GroebnerApart[expr_, vars_List, options:OptionsPattern[]] := Module[
+GroebnerApart[term_, vars_List, iterativeGroebner_, useParameterSymbolization_] := (
+    Message[GroebnerApart::notBoolean, useParameterSymbolization, 4];
+    $Failed
+) /; !MemberQ[{True, False}, useParameterSymbolization]
+
+GroebnerApart[term_, vars_List, iterativeGroebner_, useParameterSymbolization_] := Module[
     {
-        expandedExpr,
-        terms
+        denoms, qVars,
+        combined, newCombined,
+        fwdRules, bwdRules,
+        newTerm, newDenoms,
+        paramDenoms, denomsCleaned,
+        ordering, allVars,
+        ideal, gb,
+        tmp,
+        num, qFactors
     },
 
-    (* Expressions free of the variables are unchanged. *)
-    If[FreeQ[expr, Alternatives @@ vars],
-        Return[expr, Module]
+    (* Terms already minimal are kept unchanged. *)
+    If[!NeedsGroebnerReductionQ[term, vars],
+        Return[term, Module]
     ];
 
-    (* Polynomials are unchanged. *)
-    If[IsPolynomialInVars[expr, vars],
-        Return[expr, Module]
+    (* Get the local denominator set for the current term. *)
+    denoms = GetBareDenoms[term, vars];
+
+    If[denoms === $Failed,
+        Message[GroebnerApart::denomExtractionFailed, term];
+        Return[$Failed, Module]
     ];
 
-    (* If there are not enough denominators globally, nothing to do. *)
-    If[CountBareDenoms[expr, vars] <= Length[vars],
-        Return[expr, Module]
+    If[Length[denoms] <= Length[vars],
+        Return[term, Module]
     ];
 
-    (* Expand into additive terms. *)
-    expandedExpr = Expand[expr];
-    terms = If[Head[expandedExpr] === Plus, List @@ expandedExpr, {expandedExpr}];
+    qVars = Table[Unique["q"], {Length[denoms]}];
 
-    terms = Map[
-        Module[
-            {
-                denoms, qVars,
-                combined, newCombined,
-                fwdRules, bwdRules,
-                newTerm, newDenoms,
-                paramDenoms, denomsCleaned,
-                ordering, allVars,
-                ideal, gb,
-                tmp,
-                num, qFactors
-            },
+    (* Default: no parameter substitution. *)
+    newTerm = term;
+    newDenoms = denoms;
+    fwdRules = {};
+    bwdRules = {};
 
-            (* Already minimal: keep unchanged. *)
-            If[!NeedsGroebnerReductionQ[#, vars],
-                Return[#, Module]
-            ];
+    (*
+      Optional replacement of non-polynomial parameter-dependent
+      sub-expressions by temporary symbols.
+    *)
+    If[useParameterSymbolization,
+        combined = {term, denoms};
+        newCombined = MakeParametersSymbolic[combined, vars];
 
-            (* Local denominator set for this term only. *)
-            denoms = GetBareDenoms[#, vars];
+        If[newCombined === $Failed,
+            Message[GroebnerApart::parameterFailed, term];
+            Return[$Failed, Module]
+        ];
 
-            If[denoms === $Failed,
-                Message[GroebnerApart::denomExtractionFailed, #];
-                Return[$Failed, Module]
-            ];
-
-            If[Length[denoms] <= Length[vars],
-                Return[#, Module]
-            ];
-
-            qVars = Table[Unique["q"], {Length[denoms]}];
-
-            (*
-              Replace non-polynomial parameter sub-expressions by temporary
-              symbols in both the term and its denominator list.
-            *)
-            combined = {#, denoms};
-            newCombined = MakeParamatersSymbolic[combined, vars];
-
-            If[newCombined === $Failed,
-                Message[GroebnerApart::parameterSymbolizationFailed, #];
-                Return[$Failed, Module]
-            ];
-
-            {newCombined, fwdRules, bwdRules} = newCombined;
-            {newTerm, newDenoms} = newCombined;
-
-            (*
-              Clear remaining parameter denominators in the cleaned
-              denominator polynomials.
-            *)
-            paramDenoms = Denominator[Together[#]] & /@ newDenoms;
-            denomsCleaned = Expand[#1 * #2] & @@@ Transpose[{newDenoms, paramDenoms}];
-
-            ordering = GroebnerApartOrdering[denomsCleaned, vars, qVars];
-
-            If[ordering === $Failed,
-                Message[GroebnerApart::orderingFailed, newDenoms];
-                Return[$Failed, Module]
-            ];
-
-            allVars = Flatten[ordering];
-
-            ideal = MapThread[
-                #1 * #2 - #3 &,
-                {qVars, denomsCleaned, paramDenoms}
-            ];
-
-            gb = GroebnerBasis[
-                ideal,
-                allVars,
-                MonomialOrder -> EliminationOrder
-            ];
-
-            If[OptionValue["Iterated"],
-
-                (* Iterated q-space reduction *)
-                tmp = ExprToApartForm[
-                    newTerm,
-                    newDenoms,
-                    qVars,
-                    "ReturnPieces" -> True
-                ];
-
-                If[tmp === $Failed,
-                    Message[GroebnerApart::conversionFailed, newTerm];
-                    Return[$Failed, Module]
-                ];
-
-                {num, qFactors} = tmp;
-
-                tmp = GroebnerReduce[
-                    num,
-                    gb,
-                    allVars,
-                    "Iterated" -> True,
-                    "QFactors" -> qFactors
-                ],
-
-                (* Single-shot q-space reduction *)
-                tmp = ExprToApartForm[newTerm, newDenoms, qVars];
-
-                If[tmp === $Failed,
-                    Message[GroebnerApart::conversionFailed, newTerm];
-                    Return[$Failed, Module]
-                ];
-
-                tmp = GroebnerReduce[tmp, gb, allVars]
-            ];
-
-            If[tmp === $Failed,
-                Message[GroebnerApart::reductionFailed, newTerm];
-                Return[$Failed, Module]
-            ];
-
-            tmp = GroebnerBackSubstitute[tmp, newDenoms, qVars];
-
-            If[tmp === $Failed,
-                Message[GroebnerApart::backSubstitutionFailed, newTerm];
-                Return[$Failed, Module]
-            ];
-
-            (* Restore the original parameter expressions. *)
-            tmp /. bwdRules
-        ] &,
-        terms
+        {newCombined, fwdRules, bwdRules} = newCombined;
+        {newTerm, newDenoms} = newCombined;
     ];
 
-    Plus @@ terms // Expand[#, Alternatives @@ vars] &
+    (*
+      Clear any remaining parameter denominators in the denominator set.
+    *)
+    paramDenoms = Denominator[Together[#]] & /@ newDenoms;
+    denomsCleaned = Expand[#1 * #2] & @@@ Transpose[{newDenoms, paramDenoms}];
+
+    ordering = GroebnerApartOrdering[denomsCleaned, vars, qVars];
+
+    If[ordering === $Failed,
+        Message[GroebnerApart::orderingFailed, newDenoms];
+        Return[$Failed, Module]
+    ];
+
+    allVars = Flatten[ordering];
+
+    ideal = If[And @@ (# === 1 & /@ paramDenoms),
+        GroebnerApartIdeal[denomsCleaned, qVars],
+        MapThread[#1 * #2 - #3 &, {qVars, denomsCleaned, paramDenoms}]
+    ];
+
+    If[ideal === $Failed,
+        Message[GroebnerApart::idealFailed, newDenoms];
+        Return[$Failed, Module]
+    ];
+
+    gb = Quiet @ Check[
+        GroebnerBasis[
+            ideal,
+            allVars,
+            MonomialOrder -> EliminationOrder,
+            CoefficientDomain -> RationalFunctions
+        ],
+        $Failed
+    ];
+
+    If[gb === $Failed,
+        Message[GroebnerApart::basisFailed, newDenoms];
+        Return[$Failed, Module]
+    ];
+
+    tmp = ExprToApartForm[
+        newTerm,
+        newDenoms,
+        qVars,
+        "ReturnPieces" -> iterativeGroebner
+    ];
+
+    If[tmp === $Failed,
+        Message[GroebnerApart::conversionFailed, newTerm];
+        Return[$Failed, Module]
+    ];
+
+    If[iterativeGroebner,
+        {num, qFactors} = tmp;
+        tmp = GroebnerReduce[
+            num,
+            gb,
+            allVars,
+            "Iterated" -> iterativeGroebner,
+            "QFactors" -> qFactors
+        ],
+        tmp = GroebnerReduce[
+            tmp,
+            gb,
+            allVars,
+            "Iterated" -> iterativeGroebner
+        ]
+    ];
+
+    If[tmp === $Failed,
+        Message[GroebnerApart::reductionFailed, newTerm];
+        Return[$Failed, Module]
+    ];
+
+    tmp = GroebnerBackSubstitute[tmp, newDenoms, qVars];
+
+    If[tmp === $Failed,
+        Message[GroebnerApart::backSubFailed, newTerm];
+        Return[$Failed, Module]
+    ];
+
+    tmp /. bwdRules
 ]
 
-GroebnerApart::notList = "Second argument `1` must be a list of variables.";
+GroebnerApart::notList = "Argument `1` at position `2` must be a list.";
 GroebnerApart::emptyVars = "Variable list must not be empty.";
 GroebnerApart::varsNotSymbols = "The following variables are not Symbols: `1`.";
-GroebnerApart::wrongOption = "Problem with option `1`, OptionName or OptionValue not recognized.";
+GroebnerApart::notBoolean = "Argument `1` at position `2` must be True or False.";
 GroebnerApart::denomExtractionFailed = "Failed to extract denominator factors from term `1`.";
-GroebnerApart::parameterSymbolizationFailed = "Failed to make parameter-dependent non-polynomial pieces symbolic in term `1`.";
+GroebnerApart::parameterFailed = "Failed to make parameter-dependent non-polynomial pieces symbolic in term `1`.";
 GroebnerApart::orderingFailed = "Failed to build a Gr\[ODoubleDot]bner ordering for denominator set `1`.";
+GroebnerApart::idealFailed = "Failed to build the Gr\[ODoubleDot]bner ideal for denominator set `1`.";
+GroebnerApart::basisFailed = "Failed to compute the Gr\[ODoubleDot]bner basis for denominator set `1`.";
 GroebnerApart::conversionFailed = "Failed to convert term `1` into q-space.";
 GroebnerApart::reductionFailed = "Gr\[ODoubleDot]bner reduction failed for term `1`.";
-GroebnerApart::backSubstitutionFailed = "Back substitution from q-space failed for term `1`.";
-
-
-(* ::Section::Closed:: *)
-(*Test*)
-
-
-expr = 1/(x y (x + y));
-vars = {x, y};
-
-GroebnerApart[expr, vars, "Iterated" -> True]
-expr - % // Together
-
-
-expr = 1/(x y (x + y - 1));
-vars = {x, y};
-
-GroebnerApart[expr, vars, "Iterated" -> True]
-expr - % // Together
-
-
-expr = (2 y - x)/(y (x + y) (y - x));
-vars = {x, y};
-
-GroebnerApart[expr, vars, "Iterated" -> True]
-expr - % // Together
-
-
-expr = 1/(x y (x + y) (x - y));
-vars = {x, y};
-
-GroebnerApart[expr, vars, "Iterated" -> True]
-expr - % // Together
-
-
-expr = 1/(x^2 y (x + y)^2);
-vars = {x, y};
-
-GroebnerApart[expr, vars, "Iterated" -> True]
-expr - % // Together
-
-
-expr = 1/(x y (a x + y - 1) (x + b y - 1));
-vars = {x, y};
-
-GroebnerApart[expr, vars, "Iterated" -> True]
-expr - % // Together
-
-
-expr = 1/(x1 x2 (a x1 + x2 - Sqrt[c] Log[x]) (x1 + b x2 - 1));
-vars = {x1, x2};
-
-GroebnerApart[expr, vars, "Iterated" -> True]
-expr - % // Together
-
-
-expr = 1/(x y ((x + y)/(1 + b)) (x - y + 1));
-vars = {x, y};
-
-GroebnerApart[expr, vars, "Iterated" -> True]
-expr - % // Together
-
-
-expr = 1/((x^2 + y^2) (x^2 + y^2 + 1));
-vars = {x, y};
-
-GroebnerApart[expr, vars, "Iterated" -> True]
-expr - % // Together
-
-
-
+GroebnerApart::backSubFailed = "Back substitution from q-space failed for term `1`.";

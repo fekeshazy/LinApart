@@ -677,3 +677,318 @@ NormalizeDenominators[denominator_, var_] := Module[
         {k, Length[const]}
     ]}
 ]
+
+
+(* ::Subsection::Closed:: *)
+(*Functions for denominators*)
+
+
+(*
+  GetDenoms[expr, vars]
+
+  Extracts all variable-dependent denominator factors from an expression.
+
+  Parameters:
+    expr - The expression to analyze.
+    vars - List of variables. Denominator factors containing any of these 
+           variables are returned.
+
+  Returns:
+    List of denominator factors (with their powers) that depend on at 
+    least one variable in vars.
+
+  Examples:
+    GetDenoms[a/(x-1)/(y-2)^3, {x,y}]     -> {x-1, (y-2)^3}
+    GetDenoms[a/(x-1)/b^2, {x}]            -> {x-1}
+    GetDenoms[a/b/c, {x}]                  -> {}
+
+  Notes:
+    - Denominator factors free of all variables are excluded.
+    - Powers are preserved: (x-1)^3 appears as (x-1)^3, not (x-1).
+    - Requires at least two denominator factors (the denominator must 
+      have head Times). Single denominator expressions must be handled 
+      separately before calling this function.
+*)
+
+
+
+ClearAll[GetDenoms]
+
+
+
+GetDenoms[args___] := Null /; !CheckArguments[GetDenoms[args], 2]
+
+GetDenoms[expr_, vars_] := (
+    Message[GetDenoms::notList, vars];
+    $Failed
+) /; !ListQ[vars]
+
+GetDenoms[expr_, vars_List] := (
+    Message[GetDenoms::emptyVars];
+    $Failed
+) /; Length[vars] === 0
+
+GetDenoms[expr_, vars_List] := (
+    Message[GetDenoms::singleDenom, Denominator[expr]];
+    $Failed
+) /; Head[Denominator[expr]] =!= Times && !FreeQ[Denominator[expr], Alternatives @@ vars]
+
+GetDenoms[expr_, vars_List] := Module[
+    {},
+
+    expr // Denominator // Apply[List, #] & //
+        Select[#, !FreeQ[#, Alternatives @@ vars] &] &
+]
+
+
+
+GetDenoms::notList = "Second argument `1` must be a list of variables.";
+GetDenoms::emptyVars = "Variable list must not be empty.";
+GetDenoms::singleDenom = "Expression has a single denominator factor `1`. This function requires a product of at least two denominator factors.";
+
+
+(*
+  GetBareDenoms[expr, vars]
+
+  Extracts all variable-dependent denominator factors from an expression 
+  with powers stripped off.
+
+  Parameters:
+    expr - The expression to analyze.
+    vars - List of variables.
+
+  Returns:
+    List of bare denominator bases (without exponents) that depend on 
+    at least one variable in vars.
+
+  Examples:
+    GetBareDenoms[a/(x-1)/(y-2)^3, {x,y}]  -> {x-1, y-2}
+    GetBareDenoms[a/(x-1)^5/b^2, {x}]      -> {x-1}
+
+  Notes:
+    - Uses Replace at level {1} to strip powers only from the top-level 
+      factors of the denominator. This avoids incorrectly modifying 
+      subexpressions like ((1-x)^2 + y) where the Power is structural, 
+      not a multiplicity.
+    - Requires at least two denominator factors.
+*)
+
+
+
+ClearAll[GetBareDenoms]
+
+
+
+GetBareDenoms[args___] := Null /; !CheckArguments[GetBareDenoms[args], 2]
+
+GetBareDenoms[expr_, vars_] := (
+    Message[GetBareDenoms::notList, vars];
+    $Failed
+) /; !ListQ[vars]
+
+GetBareDenoms[expr_, vars_List] := (
+    Message[GetBareDenoms::emptyVars];
+    $Failed
+) /; Length[vars] === 0
+
+GetBareDenoms[expr_, vars_List] := (
+    Message[GetBareDenoms::singleDenom, Denominator[expr]];
+    $Failed
+) /; Head[Denominator[expr]] =!= Times && !FreeQ[Denominator[expr], Alternatives @@ vars]
+
+
+
+GetBareDenoms[expr_, vars_List] := Module[
+    {},
+
+    (* 
+      Replace (not ReplaceAll) at level {1} is essential here.
+      ReplaceAll would descend into subexpressions like ((1-x)^2 + y) 
+      and incorrectly strip the Power.
+    *)
+    expr // Denominator // Apply[List, #] & //
+        Replace[#,
+            Power[arg1_, power_] /; !FreeQ[arg1, Alternatives @@ vars] :> arg1,
+            {1}
+        ] & //
+        Select[#, !FreeQ[#, Alternatives @@ vars] &] &
+]
+
+
+GetBareDenoms::notList = "Second argument `1` must be a list of variables.";
+GetBareDenoms::emptyVars = "Variable list must not be empty.";
+GetBareDenoms::singleDenom = "Expression has a single denominator factor `1`. This function requires a product of at least two denominator factors.";
+
+
+(*
+  CountBareDenoms[expr, vars]
+
+  Counts the number of distinct var-dependent denominator factors 
+  in an expression, stripping powers.
+
+  Parameters:
+    expr - The expression to analyze
+    vars - List of variables
+
+  Returns:
+    Integer count of var-dependent denominator bases.
+
+  Examples:
+    CountBareDenoms[1/((x-y)^2 y (x+y)), {x,y}]  ->  3
+    CountBareDenoms[1/y, {x,y}]                   ->  1
+    CountBareDenoms[1/(a b), {x,y}]               ->  0
+    CountBareDenoms[x + y, {x,y}]                 ->  0
+*)
+
+ClearAll[CountBareDenoms]
+
+CountBareDenoms[expr_, vars_List] := Module[
+    {den, factors, varPat},
+    
+    varPat = Alternatives @@ vars;
+    den = Denominator[expr];
+    
+    (* No denominator *)
+    If[den === 1, Return[0]];
+    
+    (* Convert to list: handle Times vs single factor *)
+    factors = If[Head[den] === Times, List @@ den, {den}];
+    
+    (* Strip powers to get bases *)
+    factors = factors /. Power[base_, _] :> base;
+    
+    (* Count var-dependent factors *)
+    Length[Select[factors, !FreeQ[#, varPat] &]]
+]
+
+
+(*
+  GetDenomData[expr, vars]
+
+  Extracts all variable-dependent denominator factors with their 
+  multiplicities (powers).
+
+  Combines the functionality of GetDenoms and GetBareDenoms, returning 
+  paired data for each denominator factor.
+
+  Parameters:
+    expr - The expression to analyze.
+    vars - List of variables.
+
+  Returns:
+    List of {base, multiplicity} pairs for each variable-dependent 
+    denominator factor.
+
+  Examples:
+    GetDenomData[a/(x-1)/(y-2)^3, {x,y}]
+      -> {{x-1, 1}, {y-2, 3}}
+
+    GetDenomData[a/(x-1)^5/(y+1)^2/b^3, {x,y}]
+      -> {{x-1, 5}, {y+1, 2}}
+
+  Notes:
+    - Factors free of all variables are excluded.
+    - Aborts with error message if a denominator factor has an unexpected 
+      head (not Power, Plus, or Symbol).
+    - Requires at least two denominator factors.
+*)
+
+
+
+ClearAll[GetDenomData]
+
+
+
+GetDenomData[args___] := Null /; !CheckArguments[GetDenomData[args], 2]
+
+GetDenomData[expr_, vars_] := (
+    Message[GetDenomData::notList, vars];
+    $Failed
+) /; !ListQ[vars]
+
+GetDenomData[expr_, vars_List] := (
+    Message[GetDenomData::emptyVars];
+    $Failed
+) /; Length[vars] === 0
+
+GetDenomData[expr_, vars_List] := (
+    Message[GetDenomData::singleDenom, Denominator[expr]];
+    $Failed
+) /; Head[Denominator[expr]] =!= Times && !FreeQ[Denominator[expr], Alternatives @@ vars]
+
+
+
+GetDenomData[expr_, vars_List] := Module[
+    {denoms, multiplicities, bareDenoms},
+
+    (* Get all variable-dependent denominator factors with powers. *)
+    denoms = GetDenoms[expr, vars];
+
+    (* 
+      Extract multiplicities:
+        - Power head: extract the exponent
+        - Plus or Symbol head: multiplicity is 1
+        - Anything else: unexpected, abort
+    *)
+    multiplicities = Which[
+        Head[#] === Power,
+            # /. Power[arg_, p_] /; !FreeQ[arg, Alternatives @@ vars] :> p,
+        Head[#] === Plus || Head[#] === Symbol,
+            1,
+        True,
+            Message[GetDenomData::unexpectedHead, #, Head[#]];
+            Abort[]
+    ] & /@ denoms;
+
+    (* Strip powers to get bare denominator bases. *)
+    bareDenoms = denoms // Replace[#,
+        Power[arg1_, power_] /; !FreeQ[arg1, Alternatives @@ vars] :> arg1,
+        {1}
+    ] &;
+
+    (* Pair each base with its multiplicity. *)
+    MapThread[{#1, #2} &, {bareDenoms, multiplicities}]
+]
+
+
+GetDenomData::notList = "Second argument `1` must be a list of variables.";
+GetDenomData::emptyVars = "Variable list must not be empty.";
+GetDenomData::singleDenom = "Expression has a single denominator factor `1`. This function requires a product of at least two denominator factors.";
+GetDenomData::unexpectedHead = "Denominator factor `1` has unexpected head `2`. Expected Power, Plus, or Symbol.";
+
+
+(*
+  GetAllBareDenoms[expr, vars]
+
+  Extracts all unique variable-dependent bare denominator factors from
+  an expression, handling sums by collecting from all terms.
+
+  Parameters:
+    expr - The expression to analyze.
+    vars - List of variables.
+
+  Returns:
+    Sorted list of unique bare denominator factors depending on vars.
+*)
+
+ClearAll[GetAllBareDenoms]
+
+GetAllBareDenoms[args___] := Null /; !CheckArguments[GetAllBareDenoms[args], 2]
+
+GetAllBareDenoms[expr_, vars_] := (
+    Message[GetAllBareDenoms::notList, vars];
+    $Failed
+) /; !ListQ[vars]
+
+GetAllBareDenoms[expr_, vars_List] := (
+    Message[GetAllBareDenoms::emptyVars];
+    $Failed
+) /; Length[vars] === 0
+
+GetAllBareDenoms[expr_Plus, vars_List] := 
+    Union[Join @@ Map[GetAllBareDenoms[#, vars] &, List @@ expr]]
+
+GetAllBareDenoms[expr_, vars_List] := GetBareDenoms[expr, vars]
+
+GetAllBareDenoms::notList = "Second argument `1` must be a list of variables.";
+GetAllBareDenoms::emptyVars = "Variable list must not be empty.";

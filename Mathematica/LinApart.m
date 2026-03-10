@@ -14,13 +14,14 @@ BeginPackage["LinApart`"]
   File structure:
   
   1. tools_general.m
-     General utility functions used by both single-variable and multivariate.
+     General utility functions used by both single-variable and multivariate code.
      Contains:
        - GetExponent: extracts base and exponent from power expressions
        - SeparateDependency, Dependent: separates variable-dependent parts
        - GatherByDependency: gathers terms by unique variable-dependent structure
        - GatherByDenominator: gathers fractions by common denominators
-       - SeparateFrac: separates non-integer power factors
+       - SeparateFrac: separates non-integer or unsupported power factors
+       - VarPattern, IsPolynomialInVars: variable-pattern and polynomial checks
        - NormalizeDenominators: normalizes leading coefficients to 1
   
   2. tools_parallel.m
@@ -30,8 +31,8 @@ BeginPackage["LinApart`"]
        - ComputeParallel: parallel evaluation with file-based communication
   
   3. tools_univariate_nonlinear.m
-     Functions for handling non-linear (irreducible) denominators in 
-     single-variable partial fractions (LinApart2 functionality).
+     Functions for handling non-linear (irreducible) denominators in
+     single-variable partial fractions.
      Contains:
        - MakeCoefficientsSymbolic: replaces coefficients with symbols
        - ReducePolynomialForResidue: reduces expressions modulo a polynomial
@@ -41,33 +42,70 @@ BeginPackage["LinApart`"]
        - CheckNumericallyIfZero: probabilistic zero-testing
   
   4. tools_multivariate_linear.m
-     Functions for multivariate partial fractions with linear denominators 
-     (LinApart3 functionality).
+     Functions for multivariate partial fractions with linear denominators.
      Contains:
-       - GetDenoms, GetBareDenoms, GetDenomData: denominator extraction
-       - ExtendedCoefficientVector, ExtendedCoefficientMatrix: coefficient matrices
-       - FindSafeNullRelations, SafeNullRelations, NullSupportSize: null relation finding
+       - GetDenoms, GetBareDenoms, CountBareDenoms, GetDenomData:
+         denominator extraction
+       - ExtendedCoefficientVector, ExtendedCoefficientMatrix:
+         coefficient matrices
+       - FindSafeNullRelations, SafeNullRelations, NullSupportSize:
+         null relation finding
        - GetBestDenominatorToReplace: priority ordering for elimination
        - EliminateNullRelations: recursive null relation elimination
+       - ExpandNumeratorInDenomSpace: expands numerators in denominator space
        - FindBases: finds all n-element bases (maximal cuts)
   
-  5. preprocessor.m
-     The preprocessing pipeline that handles both single-variable and 
+  5. tools_Leinartas_method.
+     Functions for multivariate polynomial decomposition via a
+     Leinartas-style algorithm.
+     Contains:
+       - FindSyzygies: computes polynomial relations among denominator factors
+       - ReconstructRelation: reconstructs a relation from coefficient arrays
+       - SeparateSyzygiesByType: splits syzygies into homogeneous and
+         inhomogeneous classes
+       - FilterSyzygiesToCurrentDenoms: restricts syzygies to the current
+         denominator set
+       - DenomAppearsInSyzygy: checks whether a denominator participates
+         in a syzygy
+       - DeleteNonPresentDenomFromOrderedDenoms: updates elimination order
+       - EliminateInhomogeneousSyzygies: recursive inhomogeneous elimination
+       - EliminateHomogeneousSyzygies: recursive homogeneous elimination
+  
+  6. tools_Gr\[ODoubleDot]bner_method.
+     Functions for multivariate Gr\[ODoubleDot]bner-basis partial fraction decomposition.
+     Contains:
+       - GroebnerApartOrdering: constructs the block variable ordering
+       - GroebnerApartIdeal: builds the Gr\[ODoubleDot]bner-apart ideal
+       - GroebnerReduceOrderFactors: sorts q-factors for iterated reduction
+       - GroebnerReduce: one-shot or iterated Gr\[ODoubleDot]bner reduction in q-space
+       - GroebnerBackSubstitute: substitutes q_i -> 1/d_i
+       - GroebnerApartConvertFactor: converts a denominator factor into q-space
+       - ExprToApartForm: converts an expression into q-space
+       - MakeParametersSymbolic: makes non-polynomial parameter pieces symbolic
+       - NeedsGroebnerReductionQ: checks whether a term still needs reduction
+       - GroebnerApart: reduces a single additive term with the Gr\[ODoubleDot]bner method
+  
+  7. preprocessor.m
+     The preprocessing pipeline that handles both single-variable and
      multivariate cases through a unified staging structure.
      Contains:
        - PreProcessorLinApart: stages 0, 1, 2, 3
          Stage 0: optional factoring and precollecting
          Stage 1: handle sums, special cases, separate dependencies
-         Stage 2: normalize denominators, check linearity
+         Stage 2: normalize denominators or perform method-dependent
+                  multivariate preprocessing
          Stage 3: dispatch to mathematicaPartialFraction
   
-  6. partial_fraction_algorithms.m
+  8. partial_fraction_algorithms.m
      The core partial fraction algorithms.
      Contains:
        - mathematicaPartialFraction: main algorithm dispatcher
          * Single-variable "ExtendedLaurentSeries": residue-based method
          * Single-variable "Euclidean": GCD-based reduction
-         * Multivariate: null relation elimination + basis residues
+         * Multivariate "MultivariateResidue": null relation elimination
+           plus basis residues
+         * Multivariate "Leinartas": syzygy-based decomposition
+         * Multivariate "Groebner": Gr\[ODoubleDot]bner-basis q-space decomposition
        - ResidueForLaurentSeries: computes residues at poles (single-variable)
        - ResidueForBasis: computes residues at basis intersections (multivariate)
        - GetDataForResidue: extracts data for multivariate residue computation
@@ -81,24 +119,29 @@ ClearAll[LinApart]
 		(*                 Options                        *)
 		(* ============================================== *)
 
-$LinApartOptions=Options[LinApart] = {
-    "Method" -> "Automatic",
+$LinApartOptions = Options[LinApart] = {
+    "Method" -> Automatic,
     "Factor" -> True,
     "GaussianIntegers" -> True,
     "Extension" -> {},
     "Parallel" -> {False, None, None},
     "PreCollect" -> False,
-    "ApplyAfterPreCollect" -> None
+    "ApplyAfterPreCollect" -> None,
+    "IterativeGroebner" -> True,
+    "GroebnerParameterSymbolization" -> False
 };
 
 PrependTo[$Path, If[$Notebooks, NotebookDirectory[], Directory[]]];
 
 Get["tools_general.m"]
 Get["tools_parallel.m"]
+
 Get["tools_univariate_nonlinear.m"]
 Get["tools_multivariate_linear.m"]
 Get["tools_residue_method.m"]
-Get["tools_Leinartas_algorithm.m"]
+Get["tools_Leinartas_method.m"]
+Get["tools_Gr\[ODoubleDot]bner_method.m"]
+
 Get["preprocessor.m"]
 Get["partial_fraction_algorithms.m"]
 
@@ -109,7 +152,6 @@ Begin["Private`"]
 (*LinApart wrapper*)
 
 
-LinApart function
 (*
   LinApart - Partial Fraction Decomposition
 
@@ -128,6 +170,7 @@ LinApart function
        Available methods:
          - "MultivariateResidue"
          - "Leinartas"
+         - "Groebner"
 
   The dispatch is automatic based on whether the second argument is a
   Symbol or a List.
@@ -135,6 +178,16 @@ LinApart function
   Method defaults:
     - Single-variable  -> "ExtendedLaurentSeries"
     - Multivariate     -> "MultivariateResidue"
+
+  Additional method-specific options:  
+  
+  - IterativeGroebner -> True/False:
+      controls whether the Gr\[ODoubleDot]bner method reduces q-factors iteratively
+      or in one shot; the default value is True.
+  - GroebnerParameterSymbolization -> True/False:
+      controls whether non-polynomial parameter-dependent coefficient
+      pieces are replaced by temporary symbols before Gr\[ODoubleDot]bner-basis
+      computations; the default value is True.
 *)
 
 (*
@@ -171,6 +224,7 @@ LinApart function
                                |
                                +- "MultivariateResidue"
                                +- "Leinartas"
+                               +- "Groebner"
 *)
 
 $LinApartUnivariateMethodCases = {
@@ -181,7 +235,8 @@ $LinApartUnivariateMethodCases = {
 
 $LinApartMultivariateMethodCases = {
     "MultivariateResidue",
-    "Leinartas"
+    "Leinartas",
+    "Groebner"
 };
 
 $LinApartBooleanCases = {True, False};
@@ -222,48 +277,40 @@ LinApart[expr_, vars_List, options:OptionsPattern[]] := Module[
         "Method" -> "MultivariateResidue",
         Sequence @@ newOptions
     ]
-] /; OptionValue["Method"] === "Automatic"
+] /; OptionValue["Method"] === Automatic
 
 		(* ============================================== *)
 		(*           Check for input correctness          *)
 		(* ============================================== *)
 
-(* Expression is a polynomial in var - nothing to decompose *)
 LinApart[expr_, var_Symbol, options:OptionsPattern[]] :=
     expr /; PolynomialQ[expr, var]
 
-(* Expression is a polynomial in all vars - nothing to decompose *)
 LinApart[expr_, vars_List, options:OptionsPattern[]] :=
     expr /; PolynomialQ[expr, vars]
 
-(* Variable must be a Symbol or List *)
 LinApart[expr_, var_, options:OptionsPattern[]] := (
     Message[LinApart::varNotSymbol, var];
     $Failed
 ) /; Head[var] =!= Symbol && Head[var] =!= List
 
-(* Single-element list: delegate to single-variable version *)
 LinApart[expr_, vars_List, options:OptionsPattern[]] :=
     LinApart[expr, First[vars], options] /; Length[vars] === 1
 
-(* Validation: vars must not be empty *)
 LinApart[expr_, vars_List, options:OptionsPattern[]] := (
     Message[LinApart::emptyVars];
     $Failed
 ) /; Length[vars] === 0
 
-(* Validation: all vars must be Symbols *)
 LinApart[expr_, vars_List, options:OptionsPattern[]] := (
     Message[LinApart::varsNotSymbols, Select[vars, Head[#] =!= Symbol &]];
     $Failed
 ) /; !And @@ (Head[#] === Symbol & /@ vars)
 
-(* Remove duplicates and re-dispatch *)
 LinApart[expr_, vars_List, options:OptionsPattern[]] :=
     LinApart[expr, DeleteDuplicates[vars], options] /;
         Length[vars] =!= Length[DeleteDuplicates[vars]]
 
-(* Filter out unused variables and retry *)
 LinApart[expr_, vars_List, options:OptionsPattern[]] := Module[
     {usedVars, unusedVars},
 
@@ -350,11 +397,16 @@ LinApart[expr_, varOrVars_, options:OptionsPattern[]] := (
     $Failed
 ) /; !OptionValue["PreCollect"] && OptionValue["ApplyAfterPreCollect"] =!= None
 
+(* Option validation: IterativeGroebner *)
+LinApart[expr_, varOrVars_, options:OptionsPattern[]] := (
+    Message[LinApart::wrongOption, "IterativeGroebner"];
+    $Failed
+) /; !MemberQ[$LinApartBooleanCases, OptionValue["IterativeGroebner"]]
+
 		(* ============================================== *)
 		(*              Parallel handling                 *)
 		(* ============================================== *)
 
-(* Parallel requested but no kernels available: single-variable *)
 LinApart[expr_, var_Symbol, options:OptionsPattern[]] := Module[
     {newOptions},
 
@@ -370,7 +422,6 @@ LinApart[expr_, var_Symbol, options:OptionsPattern[]] := Module[
     ]
 ] /; OptionValue["Parallel"][[1]] && Length[Kernels[]] === 0
 
-(* Parallel requested but no kernels available: multivariate *)
 LinApart[expr_, vars_List, options:OptionsPattern[]] := Module[
     {newOptions},
 
@@ -386,7 +437,6 @@ LinApart[expr_, vars_List, options:OptionsPattern[]] := Module[
     ]
 ] /; OptionValue["Parallel"][[1]] && Length[Kernels[]] === 0
 
-(* Parallel only works with ExtendedLaurentSeries in the single-variable case *)
 LinApart[expr_, var_Symbol, options:OptionsPattern[]] := Module[
     {newOptions},
 
@@ -406,20 +456,17 @@ LinApart[expr_, var_Symbol, options:OptionsPattern[]] := Module[
 		(*      Entry point for further computation       *)
 		(* ============================================== *)
 
-(* EquationSystem method: delegate to Apart *)
 LinApart[expr_, var_Symbol, options:OptionsPattern[]] :=
     Apart[expr, var] /; OptionValue["Method"] === "EquationSystem"
 
-(* Main single-variable entry point: delegate to preprocessor *)
 LinApart[expr_, var_Symbol, options:OptionsPattern[]] :=
     PreProcessorLinApart[expr, var, options, 0]
 
-(* Main multivariate entry point: delegate to preprocessor *)
 LinApart[expr_, vars_List, options:OptionsPattern[]] :=
     PreProcessorLinApart[expr, vars, options, 0]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Text of messages*)
 
 
@@ -440,24 +487,58 @@ For a single variable, available methods are:
 
 For multiple variables, available methods are:
   \"MultivariateResidue\" (default),
-  \"Leinartas\".
+  \"Leinartas\",
+  \"Groebner\".
 
 Options:
   - Method -> method name or Automatic
+      Chooses the decomposition algorithm.
+      Automatic selects the default method for the chosen input type.
+
   - Factor -> True/False
+      Factors each additive term before decomposition.
+      Default: True.
+
   - GaussianIntegers -> True/False
+      Controls whether factorization is performed over the Gaussian integers.
+      Only relevant when Factor -> True.
+      Default: True.
+
   - Extension -> {a[1], a[2], ...}
+      Passes an algebraic extension to Mathematica's factorization routines.
+      Only relevant when Factor -> True.
+      Default: {}.
+
   - Parallel -> {True/False, NumberOfCores, TemporaryPath}
+      Enables parallel evaluation where supported.
+      In the single-variable case this is available only for
+      \"ExtendedLaurentSeries\".
+      In the multivariate case it is used by the residue-based method.
+      Default: {False, None, None}.
+
   - PreCollect -> True/False
+      Groups terms by common variable-dependent structure before decomposition.
+      Default: False.
+
   - ApplyAfterPreCollect -> pure function (e.g. Factor)
+      Applies the given function to the variable-independent coefficient
+      during precollection.
+      Only relevant when PreCollect -> True.
+      Default: None.
+
+  - IterativeGroebner -> True/False
+      Used only with Method -> \"Groebner\".
+      True  means that q-factors are introduced one at a time and the
+      expression is reduced after each step.
+      False means that the full q-space expression is reduced in one shot.
+      Default: True.
 
 Notes:
   - Automatic selects \"ExtendedLaurentSeries\" for one variable and
     \"MultivariateResidue\" for multiple variables.
-  - Parallel computation is only supported for the
-    \"ExtendedLaurentSeries\" method in the univariate case and for
-    multivariate residue/basis computations in the multivariate case.
-";
+  - MultivariateResidue is intended for linear denominator factors.
+  - Leinartas and Groebner are multivariate polynomial methods.
+  - Parallel computation is not available for every method.";
 
 (* Message definitions *)
 LinApart::noParallelKernels = "There are no parallel kernels available, proceeding with sequential evaluation.";

@@ -532,7 +532,7 @@ FilterSyzygiesToCurrentDenoms::unknownDenoms =
     "The following current denominators are not contained in originalDenoms: `1`.";
 
 
-(* ::Section:: *)
+(* ::Section::Closed:: *)
 (*EliminateHomogeneousSyzygies*)
 
 
@@ -864,7 +864,7 @@ EliminateHomogeneousSyzygies::badOrdering = "denomOrdering `1` must be a list of
 EliminateHomogeneousSyzygies::filterFailed = "Filtering syzygies to current denominators failed.";
 
 
-(* ::Section:: *)
+(* ::Section::Closed:: *)
 (*EliminateInhomogeneousSyzygies*)
 
 
